@@ -1,0 +1,46 @@
+#include "msp430.h"                     ; #define controlled include file
+
+        NAME    main                    ; module name
+
+        PUBLIC  main                    ; make the main label vissible
+                                        ; outside this module
+        ORG     0FFFEh
+        DC16    init                    ; set reset vector to 'init' label
+
+        RSEG    CSTACK                  ; pre-declaration of segment
+        RSEG    CODE                    ; place program in 'CODE' segment
+        ORG     0x1C00                  ; RAM starting location
+
+; ======== Variable/array directives ========
+; Each character on the screen is drawn via the indices present in the 
+; following arrays. 
+; ==== Letters A-Z ====
+;           A     B     C     D     E     F     G     H     I     J     K     L     M     N     O     P     Q     R     S     T     U     V     W     X     Y     Z   
+CHAR_H db 0xEF, 0xF1, 0x9C, 0xF0, 0x9F, 0x8E, 0xBD, 0x6F, 0x00, 0x78, 0x0E, 0x1C, 0x6C, 0x6C, 0xFC, 0xCF, 0xFC, 0xCF, 0xB7, 0x80, 0x7C, 0x0C, 0x6C, 0x00, 0x00, 0x90
+CHAR_L db 0x00, 0x50, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x22, 0x00, 0xB0, 0x82, 0x00, 0x00, 0x02, 0x02, 0x00, 0x50, 0x00, 0x28, 0x0A, 0xAA, 0xB0, 0x28    
+; Indices: 0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19    20    21    22    23    24    25 
+
+; ==== Numbers 0-9. The numbers match their indices ====
+;           0     1     2     3     4     5     6     7     8     9
+DIGIT_H db 0xFC, 0x60, 0xDB, 0xF3, 0x67, 0xB7, 0xBF, 0x80, 0xFF, 0xF7
+DIGIT_L db 0x28, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00
+
+; === LCD characters (in memory) are offset by values out of order. Fills
+; characters on the LCD from left to right by adding to 0xA20. This 
+; results in the memory address for the high byte. Offset by one to calculate
+; the location in memory of the low byte.===
+LCD_OFFSETS db 9, 5, 3, 18, 14, 7
+
+; ======== Notes on the registers ========
+; These denote the registers which should store "permanent values" for the 
+; current program loop. This is done to differentiate from registers used for
+; indices or iterations.  
+
+
+init:   MOV     #SFE(CSTACK), SP        ; set up stack
+
+main:   NOP                             ; main program
+        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        JMP $                           ; jump to current location '$'
+                                        ; (endless loop)
+        END
