@@ -2,7 +2,7 @@
 #                                                                              #
 #      IAR Universal Linker V6.6.2.104                                         #
 #                                                                              #
-#           Link time     =  14/Nov/2022  21:59:30                             #
+#           Link time     =  15/Nov/2022  16:18:56                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
 #                            ebug\List\KasinoGroup#07.map"                     #
@@ -12,7 +12,7 @@
 #                            UBROF version 10.0.6                              #
 #                            Using library modules for C-SPY (-rt)             #
 #           Command line  =  -f                                                #
-#                            C:\Users\YARIEL~1\AppData\Local\Temp\EWA3D9.tmp   #
+#                            C:\Users\YARIEL~1\AppData\Local\Temp\EW3FF4.tmp   #
 #                            ("C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\ #
 #                            Debug\Obj\asm.r43"                                #
 #                            -o                                                #
@@ -119,6 +119,8 @@ Absolute parts
   PROGRAM MODULE, NAME : main
 
 Absolute parts
+     FFDA - FFDB
+     FFE8 - FFE9
      FFFE - FFFF
            LOCAL                   ADDRESS         
            =====                   =======         
@@ -130,13 +132,15 @@ CSTACK
   Segment part 0. ROOT 
     -------------------------------------------------------------------------
 <CODE> 1 (was CODE)
-  Relative segment, address: 4400 - 6113 (0x1d14 bytes), align: 1
+  Relative segment, address: 4400 - 614F (0x1d50 bytes), align: 1
   Segment part 1. ROOT        Intra module refs:   Absolute parts
            ENTRY                   ADDRESS         REF BY
            =====                   =======         ======
-           main                    60A2 
+           main                    60CE 
            LOCAL                   ADDRESS         
            =====                   =======         
+           TIMER_ISR               6148 
+           PORT1_ISR               614A 
            init                    605A 
            CHAR_H                  6000 
            CHAR_L                  601B 
@@ -145,14 +149,14 @@ CSTACK
            LCD_OFFSETS             604C 
            TITLE                   6052 
            UnlockGPIO              605E 
-           setupDisplayAndPorts    6062 
-           titleScreen             60B2 
-           programEnd              6110 
-           displayCharacterArray   60BC 
+           setupDeviceHardware     6062 
+           titleScreen             60DE 
+           programEnd              614C 
+           displayCharacterArray   60E8 
            displayAlphabeticalData
-                                   60CC 
-           displayNumericalData    60EA 
-           endDrawing              6108 
+                                   60F8 
+           displayNumericalData    611C 
+           endDrawing              6140 
 
 
 
@@ -167,7 +171,9 @@ CSTACK
 SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
 =======              =====    =============   ===========     ====  ====  =====
 CSTACK                                 2360 - 23FF              A0   rel    1
-<CODE> 1                               4400 - 6113            1D14   rel    1
+<CODE> 1                               4400 - 614F            1D50   rel    1
+                                       FFDA - FFDB               2  aseg  
+                                       FFE8 - FFE9               2  aseg  
                                        FFFE - FFFF               2  aseg  
 
                 ****************************************
@@ -176,7 +182,7 @@ CSTACK                                 2360 - 23FF              A0   rel    1
                 *                                      *
                 ****************************************
 
- 7 444 bytes of CODE memory (+ 2 absolute )
+ 7 504 bytes of CODE memory (+ 6 absolute )
    160 bytes of DATA memory
 
 Errors: none

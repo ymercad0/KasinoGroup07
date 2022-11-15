@@ -12,7 +12,7 @@
         DC16    PORT1_ISR               ; subroutine
         
         ; Rest of program setup
-        ORG     0FFFEh                  ; vector for RESET
+        ORG     0xFFFE                  ; vector for RESET
         DC16    init                    ; set reset vector to 'init' label
 
         RSEG    CSTACK                  ; pre-declaration of segment
@@ -62,14 +62,15 @@ UnlockGPIO:                             ; Disable de GPIO power-on default
         bic.w   #LOCKLPM5,&PM5CTL0      ; high-impedance mode to activate
                                         ; previously configured port settings
 
-; ===== Ports/LCD/Timer setup. =====
+; ===== Ports/LCD/Timer/Interrupts setup. =====
 ; ===== 
-; Objective: Initialize the MSP430 ports, timers, and energize the display. 
+; Objective: Initialize the MSP430 ports, timers, interrupts, 
+;            and energize the display. 
 ; =====
 ; ===== 
 ; Postconditions: Will reset and activate the necessary input pins. Also
-;                 activates the necessary settings for the LCD and the 
-;                 timers to function. 
+;                 activates the necessary settings for the LCD, interrupts, 
+;                 and the timers to function. 
 ; =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22-11/15/22 =====
@@ -91,13 +92,25 @@ setupDeviceHardware:
         mov #0x8000, &LCDCCPCTL ; enable clock synchronization
         mov #2, &LCDCMEMCTL ; clear LCD memory (resets screen)
         bis #1, &LCDCCTL0 ; turn the LCD on'
+        
+        ; Configure Interrupts
+        bis.b #00000110B, &P1IE  ; Enable interrupt at P1.1/2
+        bis.b #00000110B, &P1IES ; Set high-low transition on P1.1/2
+        ; (GIE setup)
+        bic.b #00000110b, &P1IFG ; To erase a flag (on P1.1/2) 
+                                 ; raised before activating the GIE. 
+                                 ; This helps to avoid responding to a 
+                                 ; button push prior to program start.
+        NOP                      ; NOP before setting GIE required 
+        bis.w #GIE,SR 	         ; Enables GIE
+        NOP                      ; Wait after setting interrupt bit
 
         ; Configure timer
         ; Period = cycles * (divider/SMCLK) 
         ; SMCLK = 1 MHz
-        mov #CCIE, &TA0CCTL0 ; Enable TACCR0 interrupt
+        mov #CCIE, &TA0CCTL0 ; Enable TACCR0 interrupt. CCIE: Constant
         mov #TASSEL_2+MC_1+ID_3, &TA0CTL ; SMCLK (1 MHz) & Up Mode selected
-        NOP ; divider = 8       
+        NOP                              ; divider = 8       
         mov #15625, &TA0CCR0 ; Set the timer capture to 1/8 of a second 
                              ; (from formula)
 
@@ -153,29 +166,41 @@ displayCharacterArray: ; sets up registers to be utilized by the subroutines
         jmp displayNumericalData
 
 displayAlphabeticalData:
+        ; Perform this check first due to logical order of instructions
+        cmp #6, R6 ; end of the array 
+                   ; (ignore the 7th since we check that at the start)
+        jeq endDrawing
+        ; Proceed with drawing all other characters
         mov.b @R15, R5 ; Store value of the index for the current letter to draw
         mov.b LCD_OFFSETS(R6), R7 ; where in LCD memory to draw (offset)
+        ; increment first to safely skip writing to the screen when EMPTY
+        inc R6
+        inc R15 ; increase to next location in array
+        ; don't move 0x00 (EMPTY) into memory to prevent overwrites
+        cmp #26, R5 
+        jeq displayAlphabeticalData 
         ; draw characters
         mov.b CHAR_H(R5), 0x0A20(R7)
         mov.b CHAR_L(R5), 0x0A20+1(R7)
-        inc R6
-        inc R15 ; increase to next location in array
-        cmp #6, R6 ; end of the array 
-                   ; (ignore the 7th since we check that at the start)
-        jne displayAlphabeticalData
-        jmp endDrawing
+        jmp displayAlphabeticalData
         
 displayNumericalData:
+        ; Perform this check first due to logical order of instructions
+        cmp #6, R6 ; end of the array 
+                   ; (ignore the 7th since we check that at the start)
+        jeq endDrawing
         mov.b @R15, R5 ; Store value of the index for the current letter to draw
         mov.b LCD_OFFSETS(R6), R7 ; where in LCD memory to draw (offset)
+        ; increment first to safely skip writing to the screen when EMPTY
+        inc R6
+        inc R15 ; increase to next location in array
+        ; don't move 0x00 (EMPTY) into memory to prevent overwrites
+        cmp #10, R5 
+        jeq displayNumericalData 
         ; draw characters
         mov.b DIGIT_H(R5), 0x0A20(R7)
         mov.b DIGIT_L(R5), 0x0A20+1(R7)
-        inc R6
-        inc R15 ; increase to next location in array
-        cmp #6, R6 ; end of the array 
-        jne displayNumericalData
-        jmp endDrawing
+        jmp displayNumericalData
 
 endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R7

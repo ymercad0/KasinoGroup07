@@ -5,21 +5,21 @@
     <configuration>
         <name>Debug</name>
         <outputs>
-            <file>$TOOLKIT_DIR$\inc\msp430fr6989.h</file>
-            <file>$TOOLKIT_DIR$\config\linker\lnk430fr6989.xcl</file>
-            <file>$TOOLKIT_DIR$\config\linker\multiplier32.xcl</file>
-            <file>$TOOLKIT_DIR$\inc\msp430.h</file>
-            <file>$PROJ_DIR$\Debug\Obj\asm.r43</file>
             <file>$PROJ_DIR$\asm.s43</file>
-            <file>$PROJ_DIR$\Debug\Exe\KasinoGroup#07.d43</file>
             <file>$PROJ_DIR$\Debug\List\KasinoGroup#07.map</file>
+            <file>$TOOLKIT_DIR$\inc\msp430.h</file>
+            <file>$TOOLKIT_DIR$\config\linker\lnk430fr6989.xcl</file>
+            <file>$PROJ_DIR$\Debug\Exe\KasinoGroup#07.d43</file>
+            <file>$TOOLKIT_DIR$\inc\msp430fr6989.h</file>
+            <file>$TOOLKIT_DIR$\config\linker\multiplier32.xcl</file>
+            <file>$PROJ_DIR$\Debug\Obj\asm.r43</file>
         </outputs>
         <file>
             <name>[ROOT_NODE]</name>
             <outputs>
                 <tool>
                     <name>XLINK</name>
-                    <file> 6 7</file>
+                    <file> 4 1</file>
                 </tool>
             </outputs>
         </file>
@@ -28,13 +28,13 @@
             <outputs>
                 <tool>
                     <name>A430</name>
-                    <file> 4</file>
+                    <file> 7</file>
                 </tool>
             </outputs>
             <inputs>
                 <tool>
                     <name>A430</name>
-                    <file> 3 0</file>
+                    <file> 2 5</file>
                 </tool>
             </inputs>
         </file>
@@ -43,13 +43,13 @@
             <outputs>
                 <tool>
                     <name>XLINK</name>
-                    <file> 7</file>
+                    <file> 1</file>
                 </tool>
             </outputs>
             <inputs>
                 <tool>
                     <name>XLINK</name>
-                    <file> 1 2 4</file>
+                    <file> 3 6 7</file>
                 </tool>
             </inputs>
         </file>
