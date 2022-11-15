@@ -4,7 +4,15 @@
 
         PUBLIC  main                    ; make the main label vissible
                                         ; outside this module
-        ORG     0FFFEh
+        ; Interrupts setup
+        ORG     0xFFE8                  ; Set vector for timer interrupt 
+        DC16    TIMER_ISR               ; subroutine
+        
+        ORG     0xFFDA                  ; Set vector for S1/S2 interrupt
+        DC16    PORT1_ISR               ; subroutine
+        
+        ; Rest of program setup
+        ORG     0FFFEh                  ; vector for RESET
         DC16    init                    ; set reset vector to 'init' label
 
         RSEG    CSTACK                  ; pre-declaration of segment
@@ -26,15 +34,15 @@ DIGIT_H db 0xFC, 0x60, 0xDB, 0xF3, 0x67, 0xB7, 0xBF, 0x80, 0xFF, 0xF7, 0x00
 DIGIT_L db 0x28, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
 ;           0     1     2     3     4     5     6     7     8     9    10
 
-; === 
+; ==== 
 ; LCD characters (in memory) are offset by values. Fills characters on 
 ; the LCD from left to right by adding to 0x0A20. This results in the 
 ; memory address for the high byte. Offset by one to calculate the address 
 ; of the low byte.
-; ===
+; ====
 LCD_OFFSETS db 9, 5, 3, 18, 14, 7
 
-; === Program Screen Arrays ===
+; ==== Program Screen Arrays ====
 ;        K   A  S   I   N  O  (Alphabetical characters)
 TITLE db 10, 0, 18, 8, 13, 14, 0
 
@@ -43,7 +51,7 @@ TITLE db 10, 0, 18, 8, 13, 14, 0
 ; current program loop. This is done to differentiate from registers used for
 ; indices or iterations.  
 ;
-; === Registers === 
+; ==== Registers ==== 
 ; R15: Stores the starting address of the array containing the indices 
 ;      needed to draw a character.
 
@@ -54,15 +62,18 @@ UnlockGPIO:                             ; Disable de GPIO power-on default
         bic.w   #LOCKLPM5,&PM5CTL0      ; high-impedance mode to activate
                                         ; previously configured port settings
 
-; ===== Ports/LCD setup. =====
-; ===== Objective: Initialize the MSP430 ports and energize the display. =====
+; ===== Ports/LCD/Timer setup. =====
+; ===== 
+; Objective: Initialize the MSP430 ports, timers, and energize the display. 
+; =====
 ; ===== 
 ; Postconditions: Will reset and activate the necessary input pins. Also
-;                 activiates the necessary settings for the LCD to function. 
+;                 activates the necessary settings for the LCD and the 
+;                 timers to function. 
 ; =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/14/22 =====
-setupDisplayAndPorts:     
+; ===== Date: 11/14/22-11/15/22 =====
+setupDeviceHardware:     
         ; Manage Ports
         bis.b #11111001B, &P1DIR   ; set P1.1/2 to input 
         mov.b #00000110B, &P1REN   ; activate P1.1/2 pull-up/down resistors
@@ -79,8 +90,16 @@ setupDisplayAndPorts:
         mov #0x0208, &LCDCVCTL ; enable voltage for display
         mov #0x8000, &LCDCCPCTL ; enable clock synchronization
         mov #2, &LCDCMEMCTL ; clear LCD memory (resets screen)
-        bis #1, &LCDCCTL0 ; turn the LCD on
+        bis #1, &LCDCCTL0 ; turn the LCD on'
 
+        ; Configure timer
+        ; Period = cycles * (divider/SMCLK) 
+        ; SMCLK = 1 MHz
+        mov #CCIE, &TA0CCTL0 ; Enable TACCR0 interrupt
+        mov #TASSEL_2+MC_1+ID_3, &TA0CTL ; SMCLK (1 MHz) & Up Mode selected
+        NOP ; divider = 8       
+        mov #15625, &TA0CCR0 ; Set the timer capture to 1/8 of a second 
+                             ; (from formula)
 
 main:   NOP                             ; main program
         MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
@@ -163,6 +182,15 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R6
         pop R5
         ret  
+
+; ===== Interupt subroutines. =====
+; Interrupt subroutine 1 (redocument later)
+TIMER_ISR:
+        nop
+
+; Interrupt subroutine 2 (redocument later)
+PORT1_ISR:
+        nop
 
 programEnd:
         JMP $                           ; jump to current location '$'
