@@ -1,0 +1,184 @@
+################################################################################
+#                                                                              #
+#      IAR Universal Linker V6.6.2.104                                         #
+#                                                                              #
+#           Link time     =  14/Nov/2022  21:59:30                             #
+#           Target CPU    =  MSP430                                            #
+#           List file     =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
+#                            ebug\List\KasinoGroup#07.map"                     #
+#           Output file 1 =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
+#                            ebug\Exe\KasinoGroup#07.d43"                      #
+#                            Format: ubrof10                                   #
+#                            UBROF version 10.0.6                              #
+#                            Using library modules for C-SPY (-rt)             #
+#           Command line  =  -f                                                #
+#                            C:\Users\YARIEL~1\AppData\Local\Temp\EWA3D9.tmp   #
+#                            ("C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\ #
+#                            Debug\Obj\asm.r43"                                #
+#                            -o                                                #
+#                            "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
+#                            ebug\Exe\KasinoGroup#07.d43"                      #
+#                            -l                                                #
+#                            "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
+#                            ebug\List\KasinoGroup#07.map"                     #
+#                            -xms "-ID:\Program Files (HDD)\430\LIB\\" -f      #
+#                            "D:\Program Files (HDD)\430\config\linker\lnk430f #
+#                            r6989.xcl"                                        #
+#                            (-cmsp430 -QCODE_I=CODE_ID -QTLS16_I=TLS16_ID     #
+#                            -D__iar_HWMUL=4C0 -Z(CONST)INFO=1800-19FF         #
+#                            -Z(CONST)INFOA=1980-19FF                          #
+#                            -Z(CONST)INFOB=1900-197F                          #
+#                            -Z(CONST)INFOC=1880-18FF                          #
+#                            -Z(CONST)INFOD=1800-187F                          #
+#                            -Z(DATA)TINYRAM=0006-001F                         #
+#                            -Z(DATA)DATA16_I,DATA16_Z,DATA16_N,TLS16_I=1C00-2 #
+#                            3FF                                               #
+#                            -Z(DATA)CODE_I                                    #
+#                            -Z(DATA)DATA20_I,DATA20_Z,DATA20_N                #
+#                            -Z(DATA)CSTACK+_STACK_SIZE#                       #
+#                            -Z(CONST)DATA16_P,DATA20_P=4400-FF7F              #
+#                            -Z(DATA)DATA16_HEAP+_DATA16_HEAP_SIZE             #
+#                            -Z(DATA)DATA20_HEAP+_DATA20_HEAP_SIZE             #
+#                            -Z(CONST)MPU_B1 -Z(CONST)IPE_B1=4400-FF7F         #
+#                            -Z(DATA)IPEDATA16_N -Z(CODE)IPECODE16             #
+#                            -Z(CONST)IPEDATA16_C,IPE_B2 -Z(CONST)MPU_B2       #
+#                            -Z(CONST)DATA16_C,DATA16_ID,TLS16_ID,DIFUNCT,CHEC #
+#                            KSUM=4400-FF7F                                    #
+#                            -Z(CODE)CSTART,ISR_CODE,CODE16=4400-FF7F          #
+#                            -P(CODE)CODE=4400-FF7F,10000-23FF7                #
+#                            -Z(CODE)CODE_PAD                                  #
+#                            -Z(CONST)DATA20_C,DATA20_ID,CODE_ID=4400-FF7F,100 #
+#                            40-23FF7                                          #
+#                            -Z(CONST)SIGNATURE=FF80-FF8F                      #
+#                            -Z(CONST)JTAGSIGNATURE=FF80-FF83                  #
+#                            -Z(CONST)BSLSIGNATURE=FF84-FF87                   #
+#                            -Z(CONST)IPESIGNATURE=FF88-FF8F                   #
+#                            -Z(CODE)INTVEC=FF90-FFFF                          #
+#                            -Z(CODE)RESET=FFFE-FFFF) -f                       #
+#                            "D:\Program Files (HDD)\430\config\linker\multipl #
+#                            ier32.xcl"                                        #
+#                            (-e?Mul8Hw=?Mul8 -e?Mul16Hw=?Mul16                #
+#                            -e?Mul16to32uHw=?Mul16to32u                       #
+#                            -e?Mul16to32sHw=?Mul16to32s -e?Mul32Hw32=?Mul32   #
+#                            -e?Mul64Hw32=_Mul64i                              #
+#                            -e?Mul32u32uto64iHw32=_Mul32u32uto64i             #
+#                            -e?Mul32fHw32=_Mul32f                             #
+#                            -e_Mul64fHw32Ptr=_Mul64fPtr) -D_STACK_SIZE=A0     #
+#                            -rt -D_DATA16_HEAP_SIZE=A0                        #
+#                            -D_DATA20_HEAP_SIZE=50)                           #
+#                                                                              #
+#                           Copyright (C) 1987-2019 IAR Systems AB.            #
+################################################################################
+
+
+
+
+
+                ****************************************
+                *                                      *
+                *           CROSS REFERENCE            *
+                *                                      *
+                ****************************************
+
+                  There are no program entries.
+
+
+                ****************************************
+                *                                      *
+                *    AUTOMATIC SYMBOL REDIRECTIONS     *
+                *                                      *
+                ****************************************
+
+                  There are no automatic symbol redirections.
+
+
+
+                ****************************************
+                *                                      *
+                *              MODULE MAP              *
+                *                                      *
+                ****************************************
+
+
+  DEFINED ABSOLUTE ENTRIES
+    *************************************************************************
+
+  DEFINED ABSOLUTE ENTRIES
+  PROGRAM MODULE, NAME : ?ABS_ENTRY_MOD
+
+Absolute parts
+           ENTRY                   ADDRESS         REF BY
+           =====                   =======         ======
+           _DATA20_HEAP_SIZE       0050 
+           _DATA16_HEAP_SIZE       00A0 
+           _STACK_SIZE             00A0 
+           __iar_HWMUL             04C0 
+    *************************************************************************
+
+  FILE NAME : C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\Debug\Obj\asm.r43
+  PROGRAM MODULE, NAME : main
+
+Absolute parts
+     FFFE - FFFF
+           LOCAL                   ADDRESS         
+           =====                   =======         
+           __MSP430FR5922__        0000 
+  SEGMENTS IN THE MODULE
+  ======================
+CSTACK
+  Relative segment, address: 2360, align: 1
+  Segment part 0. ROOT 
+    -------------------------------------------------------------------------
+<CODE> 1 (was CODE)
+  Relative segment, address: 4400 - 6113 (0x1d14 bytes), align: 1
+  Segment part 1. ROOT        Intra module refs:   Absolute parts
+           ENTRY                   ADDRESS         REF BY
+           =====                   =======         ======
+           main                    60A2 
+           LOCAL                   ADDRESS         
+           =====                   =======         
+           init                    605A 
+           CHAR_H                  6000 
+           CHAR_L                  601B 
+           DIGIT_H                 6036 
+           DIGIT_L                 6041 
+           LCD_OFFSETS             604C 
+           TITLE                   6052 
+           UnlockGPIO              605E 
+           setupDisplayAndPorts    6062 
+           titleScreen             60B2 
+           programEnd              6110 
+           displayCharacterArray   60BC 
+           displayAlphabeticalData
+                                   60CC 
+           displayNumericalData    60EA 
+           endDrawing              6108 
+
+
+
+
+                ****************************************
+                *                                      *
+                *      SEGMENTS IN ADDRESS ORDER       *
+                *                                      *
+                ****************************************
+
+
+SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
+=======              =====    =============   ===========     ====  ====  =====
+CSTACK                                 2360 - 23FF              A0   rel    1
+<CODE> 1                               4400 - 6113            1D14   rel    1
+                                       FFFE - FFFF               2  aseg  
+
+                ****************************************
+                *                                      *
+                *        END OF CROSS REFERENCE        *
+                *                                      *
+                ****************************************
+
+ 7 444 bytes of CODE memory (+ 2 absolute )
+   160 bytes of DATA memory
+
+Errors: none
+Warnings: none
+

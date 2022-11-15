@@ -5,16 +5,21 @@
     <configuration>
         <name>Debug</name>
         <outputs>
+            <file>$TOOLKIT_DIR$\inc\msp430fr6989.h</file>
+            <file>$TOOLKIT_DIR$\config\linker\lnk430fr6989.xcl</file>
+            <file>$TOOLKIT_DIR$\config\linker\multiplier32.xcl</file>
+            <file>$TOOLKIT_DIR$\inc\msp430.h</file>
+            <file>$PROJ_DIR$\Debug\Obj\asm.r43</file>
             <file>$PROJ_DIR$\asm.s43</file>
             <file>$PROJ_DIR$\Debug\Exe\KasinoGroup#07.d43</file>
-            <file>$PROJ_DIR$\Debug\Obj\asm.r43</file>
+            <file>$PROJ_DIR$\Debug\List\KasinoGroup#07.map</file>
         </outputs>
         <file>
             <name>[ROOT_NODE]</name>
             <outputs>
                 <tool>
                     <name>XLINK</name>
-                    <file> 1</file>
+                    <file> 6 7</file>
                 </tool>
             </outputs>
         </file>
@@ -23,17 +28,31 @@
             <outputs>
                 <tool>
                     <name>A430</name>
-                    <file> 2</file>
+                    <file> 4</file>
                 </tool>
             </outputs>
+            <inputs>
+                <tool>
+                    <name>A430</name>
+                    <file> 3 0</file>
+                </tool>
+            </inputs>
         </file>
-        <forcedrebuild>
-            <name>[MULTI_TOOL]</name>
-            <tool>XLINK</tool>
-        </forcedrebuild>
-        <forcedrebuild>
-            <name>[REBUILD_ALL]</name>
-        </forcedrebuild>
+        <file>
+            <name>$PROJ_DIR$\Debug\Exe\KasinoGroup#07.d43</name>
+            <outputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 7</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>XLINK</name>
+                    <file> 1 2 4</file>
+                </tool>
+            </inputs>
+        </file>
     </configuration>
     <configuration>
         <name>Release</name>

@@ -48,10 +48,64 @@
         <Freq>1000000</Freq>
         <FreqHi>0</FreqHi>
     </Simulator>
+    <EEM_State_Storage>
+        <Buffer>010000000000000000000000</Buffer>
+    </EEM_State_Storage>
+    <EEM_Sequencer>
+        <Buffer>000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</Buffer>
+    </EEM_Sequencer>
+    <EEM_Cycle_Counter_0>
+        <Counter0>0000000000000000000000000000000000000000000000000000000000000000</Counter0>
+    </EEM_Cycle_Counter_0>
+    <EEM_Cycle_Counter_1>
+        <Counter1>0000000000000000000000000000000000000000000000000000000000000000</Counter1>
+    </EEM_Cycle_Counter_1>
+    <DebugChecksum>
+        <Checksum>4136986598</Checksum>
+    </DebugChecksum>
+    <CallStack>
+        <ShowArgs>0</ShowArgs>
+    </CallStack>
+    <Disassembly>
+        <MixedMode>1</MixedMode>
+    </Disassembly>
+    <PowerLog>
+        <Title_0>Energy</Title_0>
+        <Symbol_0>0 4 0</Symbol_0>
+        <Title_1>Voltage</Title_1>
+        <Symbol_1>0 4 0</Symbol_1>
+        <Title_2>Current</Title_2>
+        <Symbol_2>0 4 0</Symbol_2>
+        <LogEnabled>0</LogEnabled>
+        <GraphEnabled>0</GraphEnabled>
+        <ShowTimeLog>1</ShowTimeLog>
+        <LiveEnabled>0</LiveEnabled>
+        <LiveFile>PowerLogLive.log</LiveFile>
+    </PowerLog>
+    <TermIOLog>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+    </TermIOLog>
+    <LogFile>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+        <Category>_ 0</Category>
+    </LogFile>
+    <PowerProbe>
+        <Frequency>10000</Frequency>
+        <Probe0>Current</Probe0>
+        <ProbeSetup0>0 1 1 2 0 0</ProbeSetup0>
+        <Probe1>Voltage</Probe1>
+        <ProbeSetup1>1 1 1 4 0 0</ProbeSetup1>
+        <Probe2>Energy</Probe2>
+        <ProbeSetup2>4 1 1 10 0 0</ProbeSetup2>
+    </PowerProbe>
     <Breakpoints>
         <Count>0</Count>
     </Breakpoints>
     <FET>
+        <Clock_mode>46</Clock_mode>
+        <Extended_Clock_mode>1087</Extended_Clock_mode>
         <Secure_Password />
         <Extended_Clock_Control_Enable>1</Extended_Clock_Control_Enable>
         <Advanced_Extended_Clock_Control>0</Advanced_Extended_Clock_Control>
@@ -71,18 +125,6 @@
         <all_registers>0</all_registers>
         <File_name />
     </Memory_Dump>
-    <EEM_State_Storage>
-        <Buffer>010000000300000000000000</Buffer>
-    </EEM_State_Storage>
-    <EEM_Sequencer>
-        <Buffer>000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</Buffer>
-    </EEM_Sequencer>
-    <EEM_Cycle_Counter_0>
-        <Counter0>0000000000000000000000000000000000000000000000000000000000000000</Counter0>
-    </EEM_Cycle_Counter_0>
-    <EEM_Cycle_Counter_1>
-        <Counter1>0000000000000000000000000000000000000000000000000000000000000000</Counter1>
-    </EEM_Cycle_Counter_1>
     <Aliases>
         <Count>0</Count>
         <SuppressDialog>0</SuppressDialog>
