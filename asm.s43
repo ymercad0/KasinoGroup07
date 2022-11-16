@@ -6,10 +6,10 @@
                                         ; outside this module
         ; Interrupts setup
         ORG     0xFFE8                  ; Set vector for timer interrupt 
-        DC16    TIMER_ISR               ; subroutine
+        DC16    ISR_TIMER               ; subroutine
         
         ORG     0xFFDA                  ; Set vector for S1/S2 interrupt
-        DC16    PORT1_ISR               ; subroutine
+        DC16    ISR_PORT1               ; subroutine
         
         ; Rest of program setup
         ORG     0xFFFE                  ; vector for RESET
@@ -23,16 +23,16 @@
 ; Each character on the screen is drawn via the indices present in the 
 ; following arrays. 
 ; ==== Letters A-Z ====
-;           A     B     C     D     E     F     G     H     I     J     K     L     M     N     O     P     Q     R     S     T     U     V     W     X     Y     Z   EMPTY
-CHAR_H db 0xEF, 0xF1, 0x9C, 0xF0, 0x9F, 0x8E, 0xBD, 0x6F, 0x90, 0x78, 0x0E, 0x1C, 0x6C, 0x6C, 0xFC, 0xCF, 0xFC, 0xCF, 0xB7, 0x80, 0x7C, 0x0C, 0x6C, 0x00, 0x00, 0x90, 0x00
-CHAR_L db 0x00, 0x50, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x22, 0x00, 0xB0, 0x82, 0x00, 0x00, 0x02, 0x02, 0x00, 0x50, 0x00, 0x28, 0x0A, 0xAA, 0xB0, 0x28, 0x00   
-; Indices: 0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19    20    21    22    23    24    25    26
+;           A     B     C     D     E     F     G     H     I     J     K     L     M     N     O     P     Q     R     S     T     U     V     W     X     Y     Z  
+CHAR_H db 0xEF, 0xF1, 0x9C, 0xF0, 0x9F, 0x8E, 0xBD, 0x6F, 0x90, 0x78, 0x0E, 0x1C, 0x6C, 0x6C, 0xFC, 0xCF, 0xFC, 0xCF, 0xB7, 0x80, 0x7C, 0x0C, 0x6C, 0x00, 0x00, 0x90
+CHAR_L db 0x00, 0x50, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x22, 0x00, 0xB0, 0x82, 0x00, 0x00, 0x02, 0x02, 0x00, 0x50, 0x00, 0x28, 0x0A, 0xAA, 0xB0, 0x28   
+; Indices: 0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19    20    21    22    23    24    25    
 
-; ==== Numbers 0-9. Each number matches the indices below. ====
-;                                                                     EMPTY
+; ==== Numbers 0-9. Memory from previous array. ====
+;           0     1     2     3     4     5     6     7     8     9    EMPTY
 DIGIT_H db 0xFC, 0x60, 0xDB, 0xF3, 0x67, 0xB7, 0xBF, 0x80, 0xFF, 0xF7, 0x00
 DIGIT_L db 0x28, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
-;           0     1     2     3     4     5     6     7     8     9    10
+; Indices:  26    27    28    29    30    31    32    33    34    35    36
 
 ; ==== 
 ; LCD characters (in memory) are offset by values. Fills characters on 
@@ -43,8 +43,8 @@ DIGIT_L db 0x28, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
 LCD_OFFSETS db 9, 5, 3, 18, 14, 7
 
 ; ==== Program Screen Arrays ====
-;        K   A  S   I   N  O  (Alphabetical characters)
-TITLE db 10, 0, 18, 8, 13, 14, 0
+;        K   A  S   I   N  O  
+TITLE db 10, 0, 18, 8, 13, 14
 
 ; ======== Notes on the registers ========
 ; These denote the registers which should store "permanent values" for the 
@@ -52,10 +52,11 @@ TITLE db 10, 0, 18, 8, 13, 14, 0
 ; indices or iterations.  
 ;
 ; ==== Registers ==== 
+; R14: Indicates whether a button press was succesful or not. 1 == S1 was 
+;      pressed. 2 == S2 was pressed. 
 ; R15: Stores the starting address of the array containing the indices 
 ;      needed to draw a character.
 
-ALIGN 1
 init:   MOV     #SFE(CSTACK), SP        ; set up stack
 
 UnlockGPIO:                             ; Disable de GPIO power-on default
@@ -73,8 +74,8 @@ UnlockGPIO:                             ; Disable de GPIO power-on default
 ;                 and the timers to function. 
 ; =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/14/22-11/15/22 =====
-setupDeviceHardware:     
+; ===== Date: 11/14/22-11/16/22 =====
+SUB_setupDeviceHardware:     
         ; Manage Ports
         bis.b #11111001B, &P1DIR   ; set P1.1/2 to input 
         mov.b #00000110B, &P1REN   ; activate P1.1/2 pull-up/down resistors
@@ -92,18 +93,6 @@ setupDeviceHardware:
         mov #0x8000, &LCDCCPCTL ; enable clock synchronization
         mov #2, &LCDCMEMCTL ; clear LCD memory (resets screen)
         bis #1, &LCDCCTL0 ; turn the LCD on'
-        
-        ; Configure Interrupts
-        bis.b #00000110B, &P1IE  ; Enable interrupt at P1.1/2
-        bis.b #00000110B, &P1IES ; Set high-low transition on P1.1/2
-        ; (GIE setup)
-        bic.b #00000110b, &P1IFG ; To erase a flag (on P1.1/2) 
-                                 ; raised before activating the GIE. 
-                                 ; This helps to avoid responding to a 
-                                 ; button push prior to program start.
-        NOP                      ; NOP before setting GIE required 
-        bis.w #GIE,SR 	         ; Enables GIE
-        NOP                      ; Wait after setting interrupt bit
 
         ; Configure timer
         ; Period = cycles * (divider/SMCLK) 
@@ -114,11 +103,24 @@ setupDeviceHardware:
         mov #15625, &TA0CCR0 ; Set the timer capture to 1/8 of a second 
                              ; (from formula)
 
-main:   NOP                             ; main program
-        MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
-        ; Program mainloop
-        call #titleScreen
-        call #programEnd ; (remove later)
+        ; Configure Interrupts
+        bis.b #00000110B, &P1IE  ; Enable interrupt at P1.1/2
+        bis.b #00000110B, &P1IES ; Set high-low transition on P1.1/2
+        bic.b #00000110b, &P1IFG ; To erase a flag (on P1.1/2) 
+                                 ; raised before activating the GIE. 
+                                 ; This helps to avoid responding to a 
+                                 ; button push prior to program start.
+
+; Program is handled by interrupts
+main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        ; Activate GIE & enter Low Power Mode 0
+        NOP                             ; NOP before setting GIE required 
+        bis     #GIE+LPM0, SR           ; Enables GIE + LPM0     
+        NOP                             ; Wait after setting interrupt
+
+        JMP $                           ; jump to current location '$'
+        NOP                             ; (endless loop)
+        
 
 ; ===== Title screen display subroutines. =====
 ; ===== 
@@ -132,43 +134,44 @@ main:   NOP                             ; main program
 ; ===== Postconditions: Draws the title screen onto the LCD. =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22 =====
-titleScreen:
+SUB_titleScreen:
+        mov #0, R14 ; Initialize states
         mov #TITLE, R15
-        call #displayCharacterArray
+        call #SUB_displayCharacterArray
+        call #SUB_interruptManager
         ret
+        
+SUB_interruptManager: ; interrupts will always return to this subroutine
+        cmp #1, R14
+        jmp 
+        
 
 ; ===== General LCD display subroutines. =====
 ; ===== 
-; Objective: Given an array of numbers, displays the characters at 
-;            those positions on the LCD. 
+; Objective: Given an array of numbers, displays the characters at those 
+;            positions on the LCD. 
 ; =====
 ; ===== 
-; Preconditions: R15 must be an array of size 7 containing only numerical values, 
+; Preconditions: R15 must be an array of size 6 containing only numerical values, 
 ;                in order to access the values at that index and write it
-;                to the LCD's memory. The 7th index must contain a 0 or a 1.
-;                A 0 on this position means we desire to draw alphabetical 
-;                values while a 1 means we wish to draw numerical values. 
-;                Screen should also be cleared beforehand.
+;                to the LCD's memory. Screen should also be cleared beforehand.
 ; =====
 ; ===== 
 ; Postconditions: Draws the indicated numbers or characters onto the LCD.
 ; =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22 =====
-displayCharacterArray: ; sets up registers to be utilized by the subroutines
+SUB_displayCharacterArray: ; sets up registers to be utilized by the subroutines
         push.w R5 ; Lookup index for the character arrays
         push.w R6 ; Iteration index for LCD memory offsets/6 array elements
         push.w R7 ; Value for current LCD memory offset (same index as R6)
         ; initialize values
         mov #0, R6
-        tst.b 6(R15) ; 0 == display alphabetical values
-        jeq displayAlphabeticalData
-        jmp displayNumericalData
+        jmp displayCharacterData
 
-displayAlphabeticalData:
-        ; Perform this check first due to logical order of instructions
-        cmp #6, R6 ; end of the array 
-                   ; (ignore the 7th since we check that at the start)
+displayCharacterData:
+        ; Perform this check first (edge case: Empty char in last index of arr)
+        cmp #5, R6 ; end of the array 
         jeq endDrawing
         ; Proceed with drawing all other characters
         mov.b @R15, R5 ; Store value of the index for the current letter to draw
@@ -177,30 +180,12 @@ displayAlphabeticalData:
         inc R6
         inc R15 ; increase to next location in array
         ; don't move 0x00 (EMPTY) into memory to prevent overwrites
-        cmp #26, R5 
-        jeq displayAlphabeticalData 
+        cmp #36, R5 
+        jeq displayCharacterData 
         ; draw characters
         mov.b CHAR_H(R5), 0x0A20(R7)
         mov.b CHAR_L(R5), 0x0A20+1(R7)
-        jmp displayAlphabeticalData
-        
-displayNumericalData:
-        ; Perform this check first due to logical order of instructions
-        cmp #6, R6 ; end of the array 
-                   ; (ignore the 7th since we check that at the start)
-        jeq endDrawing
-        mov.b @R15, R5 ; Store value of the index for the current letter to draw
-        mov.b LCD_OFFSETS(R6), R7 ; where in LCD memory to draw (offset)
-        ; increment first to safely skip writing to the screen when EMPTY
-        inc R6
-        inc R15 ; increase to next location in array
-        ; don't move 0x00 (EMPTY) into memory to prevent overwrites
-        cmp #10, R5 
-        jeq displayNumericalData 
-        ; draw characters
-        mov.b DIGIT_H(R5), 0x0A20(R7)
-        mov.b DIGIT_L(R5), 0x0A20+1(R7)
-        jmp displayNumericalData
+        jmp displayCharacterData
 
 endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R7
@@ -210,15 +195,89 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
 
 ; ===== Interupt subroutines. =====
 ; Interrupt subroutine 1 (redocument later)
-TIMER_ISR:
+ISR_TIMER:
         nop
 
-; Interrupt subroutine 2 (redocument later)
-PORT1_ISR:
-        nop
 
-programEnd:
-        JMP $                           ; jump to current location '$'
-                                        ; (endless loop)
-        NOP
+; ===== P1 Interrupt Subroutines. =====
+; ===== 
+; Objective: Attend user presses on S1/2 appropriately via interrupts and 
+;            update the registers managing the values/status of P1.1/2. 
+; =====
+; ===== 
+; Postconditions: 
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/15/22 =====
+ISR_PORT1:
+        ; Check S1
+        bit.b   #00000010B, &P1IFG ; Test P1IFG to detect interrupt from S1    
+        jz      PORT1_END          ; S1 not pressed. 0 == interrupt not pending
+        jmp     S1_CHECK
+        ; Check S2
+        bit.b   #00000100B, &P1IFG
+        jz      PORT1_END  ; S2 not pressed, end subroutine
+        jmp     S2_CHECK
+
+S1_CHECK:
+        call    #SUB_S1P1Debounce  ; Check button states via debouncing
+        tst.b   R14
+        jnz     PORT1_END      ; Debouncing failed
+        mov #1, R14                ; press successful
+        jmp     PORT1_END
+
+S2_CHECK:     
+        call    #SUB_S1P2Debounce ; Check button states via debouncing
+        tst.b   R14
+        jnz     PORT1_END     ; Debouncing failed
+        mov #2, R14 
+        jmp     PORT1_END               
+
+PORT1_END:
+        bic.b #00000110B, &P1IFG       ; Clear interrupt flags
+        reti
         END
+        
+; ===== Debounce subroutines. =====
+; ===== 
+; Objective: Debounce subroutines recheck whether certain buttons were 
+;            really pressed.
+; =====
+; ===== 
+; Postconditions: Stores a 0 in R14 when S1/2 are succesfully pressed. 
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/15/22 =====
+SUB_S1P1Debounce: ; S1 Pin 1
+        call #delay ; debouncing
+        mov.b &P1IN, R14 ; recheck P1.1 value to check if it was really pressed
+        and.b #BIT1, R14 
+        sub.b #00000010B, R14 ; should be no longer pressed, avoids long presses
+                             ; if these are the same, R5 == 0
+        ret
+ 
+SUB_S1P2Debounce: ; S1 Pin 2
+        call #delay ; debouncing
+        mov.b &P1IN, R14 ; recheck P1.2 value to check if it was really pressed
+        and.b #BIT2, R14 
+        sub.b #00000100B, R14 
+        ret
+        
+; ===== Delay subroutines. =====
+; ===== Objective: Decrements from a large value to stall for time. =====
+; ===== 
+; Postconditions: Utilizes a temporary register to stall for time, allowing for 
+;                 the button states to be read accurately.
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/15/22 =====
+SUB_delay:
+        push.w R10 ; store original value
+        mov #0xFF, R10
+        jmp SUB_delay
+        
+SUB_loop:
+        dec R10
+        jnz SUB_loop
+        pop R10 
+        ret ; returns to whatever subroutine the delay was called from
