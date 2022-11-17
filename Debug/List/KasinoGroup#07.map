@@ -2,7 +2,7 @@
 #                                                                              #
 #      IAR Universal Linker V6.6.2.104                                         #
 #                                                                              #
-#           Link time     =  15/Nov/2022  16:18:56                             #
+#           Link time     =  17/Nov/2022  16:28:02                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
 #                            ebug\List\KasinoGroup#07.map"                     #
@@ -12,7 +12,7 @@
 #                            UBROF version 10.0.6                              #
 #                            Using library modules for C-SPY (-rt)             #
 #           Command line  =  -f                                                #
-#                            C:\Users\YARIEL~1\AppData\Local\Temp\EW3FF4.tmp   #
+#                            C:\Users\YARIEL~1\AppData\Local\Temp\EW646C.tmp   #
 #                            ("C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\ #
 #                            Debug\Obj\asm.r43"                                #
 #                            -o                                                #
@@ -132,31 +132,37 @@ CSTACK
   Segment part 0. ROOT 
     -------------------------------------------------------------------------
 <CODE> 1 (was CODE)
-  Relative segment, address: 4400 - 614F (0x1d50 bytes), align: 1
+  Relative segment, address: 4400 - 6153 (0x1d54 bytes), align: 1
   Segment part 1. ROOT        Intra module refs:   Absolute parts
            ENTRY                   ADDRESS         REF BY
            =====                   =======         ======
-           main                    60CE 
+           main                    60C4 
            LOCAL                   ADDRESS         
            =====                   =======         
-           TIMER_ISR               6148 
-           PORT1_ISR               614A 
-           init                    605A 
+           ISR_TIMER               6128 
+           ISR_PORT1               612A 
+           init                    6056 
            CHAR_H                  6000 
-           CHAR_L                  601B 
-           DIGIT_H                 6036 
-           DIGIT_L                 6041 
-           LCD_OFFSETS             604C 
-           TITLE                   6052 
-           UnlockGPIO              605E 
-           setupDeviceHardware     6062 
-           titleScreen             60DE 
-           programEnd              614C 
-           displayCharacterArray   60E8 
-           displayAlphabeticalData
-                                   60F8 
-           displayNumericalData    611C 
-           endDrawing              6140 
+           CHAR_L                  601A 
+           DIGIT_H                 6034 
+           DIGIT_L                 603F 
+           LCD_OFFSETS             604A 
+           TITLE                   6050 
+           UnlockGPIO              605A 
+           SUB_setupDeviceHardware
+                                   605E 
+           SUB_initializeValues    60DA 
+           SUB_titleScreen         60E8 
+           SUB_buttonStateManager
+                                   60E2 
+           SUB_displayCharacterArray
+                                   60F2 
+           displayCharacterData    60FC 
+           endDrawing              6120 
+           S1Success               6138 
+           S2Success               613E 
+           PORT1_ISR_END           6148 
+           recordStateTransition   6140 
 
 
 
@@ -171,7 +177,7 @@ CSTACK
 SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
 =======              =====    =============   ===========     ====  ====  =====
 CSTACK                                 2360 - 23FF              A0   rel    1
-<CODE> 1                               4400 - 614F            1D50   rel    1
+<CODE> 1                               4400 - 6153            1D54   rel    1
                                        FFDA - FFDB               2  aseg  
                                        FFE8 - FFE9               2  aseg  
                                        FFFE - FFFF               2  aseg  
@@ -182,7 +188,7 @@ CSTACK                                 2360 - 23FF              A0   rel    1
                 *                                      *
                 ****************************************
 
- 7 504 bytes of CODE memory (+ 6 absolute )
+ 7 508 bytes of CODE memory (+ 6 absolute )
    160 bytes of DATA memory
 
 Errors: none
