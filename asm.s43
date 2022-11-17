@@ -46,18 +46,15 @@ LCD_OFFSETS db 9, 5, 3, 18, 14, 7
 ;        K   A  S   I   N  O  
 TITLE db 10, 0, 18, 8, 13, 14
 
-; ======== Notes on the registers ========
+; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
 ; current program loop. This is done to differentiate from registers used for
-; indices or iterations.  
+; indices, checks, or iterations.  
 ;
 ; ==== Registers ==== 
-; R4: 
 ; R10: Stores what state to render. Each state is defined by a constant. 
-; R14: Utilized to indicate whether a button was pressed or not.
 ; R15: Stores the starting address of the array containing the indices 
 ;      needed to draw a character.
-
 
 ; ==== States ====
 ; (Each state is stored in R10)
@@ -103,7 +100,7 @@ SUB_setupDeviceHardware:
         mov #0x0208, &LCDCVCTL ; enable voltage for display
         mov #0x8000, &LCDCCPCTL ; enable clock synchronization
         mov #2, &LCDCMEMCTL ; clear LCD memory (resets screen)
-        bis #1, &LCDCCTL0 ; turn the LCD on'
+        bis #1, &LCDCCTL0 ; turn the LCD on
 
         ; Configure timer
         ; Period = cycles * (divider/SMCLK) 
@@ -124,26 +121,26 @@ SUB_setupDeviceHardware:
 
 ; Program is handled by interrupts
 main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
-        ; Initialize registers
+        ; Initialize program (not a mainloop)
         call #SUB_initializeValues
         ; Activate GIE & enter Low Power Mode 0
         NOP                             ; NOP before setting GIE required 
-        bis     #GIE+LPM0, SR           ; Enables GIE + LPM0     
+        bis  #GIE+LPM0, SR              ; Enables GIE + LPM0     
         NOP                             ; Wait after setting interrupt
 
         JMP $                           ; jump to current location '$'
         NOP                             ; (endless loop)
     
-; ===== Initialize subroutine. [ADD ALL REGISTER THAT NEED TO BE INIT HERE]=====
+; ===== Initialize subroutine. [ADD REGISTER THAT NEED TO BE INIT HERE]=====
 ; ===== 
-; Objective: Initialize the various registers utilized by the game.
+; Objective: Initialize the various registers and settings utilized by the game.
 ; =====
 ; ===== Postconditions: Modifies: R10 =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/17/22 =====
 SUB_initializeValues:
         mov #0, R10 ; Start on the title screen
-        call #SUB_titleScreen ; initialize it 
+        call #SUB_titleScreen ; Display it 
         ret 
         
 ; ===== Button Game State Manager Subroutine =====
@@ -221,50 +218,6 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R5
         ret  
 
-; ===== Debounce subroutines. =====
-; ===== 
-; Objective: Debounce subroutines recheck whether certain buttons were 
-;            really pressed.
-; =====
-; ===== 
-; Postconditions:  
-; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/15/22-11/17/22 =====
-SUB_S1P1Debounce: ; S1
-        call #SUB_delay  ; debouncing
-        mov.b &P1IN, R14 ; recheck P1.1 value to check if it was really pressed
-        and.b #BIT1, R14 
-        sub.b #00000010B, R14 ; should be no longer pressed, avoids long presses
-                             ; if these are the same, R14 == 0
-        ret
- 
-SUB_S1P2Debounce: ; S2
-        call #SUB_delay  ; debouncing
-        mov.b &P1IN, R14 ; recheck P1.2 value to check if it was really pressed
-        and.b #BIT2, R14 
-        sub.b #00000100B, R14 
-        ret
-
-; ===== Delay subroutines. =====
-; ===== Objective: Decrements from a large value to stall for time. =====
-; ===== 
-; Postconditions: Utilizes a temporary register to stall for time, allowing for 
-;                 the button states to be read accurately.
-; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/15/22 =====
-SUB_delay:
-        push.w R10 ; store original value
-        mov #0xFF, R10
-        jmp loop
-        
-loop:
-        dec R10
-        jnz loop
-        pop R10 
-        ret ; returns to whatever subroutine the delay was called from
-
 ; ===== Interupt subroutines. =====
 ; Interrupt subroutine 1 (redocument later)
 ISR_TIMER:
@@ -272,38 +225,28 @@ ISR_TIMER:
         
 ; ===== P1 Interrupt Subroutines. =====
 ; ===== 
-; Objective: Attend user presses on S1/2 appropriately via interrupts and 
-;            update the registers managing the values/status of P1.1/2 (R14). 
+; Objective: Attend user presses on S1/2 appropriately via interrupts.
 ; =====
 ; ===== 
-; Postconditions: 
+; Preconditions: Cannot handle time sensitive events, only those triggered by
+;                button presses. 
+; =====
+; ===== 
+; Postconditions: Switches to a different state or executes a program action
+;                 based on the current state.
 ; =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/15/22-11/17/22 =====
-ISR_PORT1:
-        bic.b #00000110B, &P1IFG       ; Clear interrupt flags
+ISR_PORT1:      
         ; Check S1
         bit.b   #00000010B, &P1IFG ; Test P1IFG to detect interrupt from S1    
-        jz      PORT1_ISR_END          ; S1 not pressed. 0 == interrupt not pending
-        jmp     S1_CHECK
+        jnz     S1Success          ; 0 == interrupt not pending
         ; Check S2
         bit.b   #00000100B, &P1IFG
-        jz      PORT1_ISR_END  ; S2 not pressed, end subroutine
-        jmp     S2_CHECK
-
-S1_CHECK:
-        call    #SUB_S1P1Debounce  ; Check button states via debouncing
-        tst.b   R14
-        jnz     PORT1_ISR_END      ; Debouncing failed
-        jmp     S1Success
-
-S2_CHECK:     
-        call    #SUB_S1P2Debounce ; Check button states via debouncing
-        tst.b   R14
-        jnz     PORT1_ISR_END     ; Debouncing failed
-        jmp     S2Success
-
-S1Success:
+        jnz     S2Success
+        jmp     PORT1_ISR_END  ; Didn't recieve S1/2 interrupts
+        
+S1Success: ; S1 or S2 have been succesfully pressed
         cmp #0, R10 ; on the title screen, transitions to Record
         jeq recordStateTransition ; transitions by incrementing by 1
         jmp PORT1_ISR_END
@@ -311,13 +254,14 @@ S1Success:
 S2Success:
         jmp PORT1_ISR_END
 
-recordStateTransition:      ; R10 == 1 (the high score mode)
-        inc R10
-        mov #2, &LCDCMEMCTL ; clear LCD memory before going to next state
+recordStateTransition:      
+        inc R10             ; R10 == 1 (the high score mode)
+        mov #2, &LCDCMEMCTL ; clear screen before going to next state
         jmp PORT1_ISR_END
 
 PORT1_ISR_END:
-        call #SUB_buttonStateManager  ; manage user state
+        bic.b #00000110B, &P1IFG      ; Clear interrupt flags
+        call #SUB_buttonStateManager  ; Manage program state
         reti
         END
         
