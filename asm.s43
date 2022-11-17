@@ -52,10 +52,21 @@ TITLE db 10, 0, 18, 8, 13, 14
 ; indices or iterations.  
 ;
 ; ==== Registers ==== 
-; R14: Indicates whether a button press was succesful or not. 1 == S1 was 
-;      pressed. 2 == S2 was pressed. 
+; R4: 
+; R10: Stores what state to render. Each state is defined by a constant. 
+; R14: Utilized to indicate whether a button was pressed or not.
 ; R15: Stores the starting address of the array containing the indices 
 ;      needed to draw a character.
+
+
+; ==== States ====
+; (Each state is stored in R10)
+; 0: Title Screen
+; 1: Records
+; 2: Player Selection
+; 3: Test Mode
+; 4: Pro Mode
+; 5: Scores
 
 init:   MOV     #SFE(CSTACK), SP        ; set up stack
 
@@ -113,6 +124,8 @@ SUB_setupDeviceHardware:
 
 ; Program is handled by interrupts
 main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
+        ; Initialize registers
+        call #SUB_initializeValues
         ; Activate GIE & enter Low Power Mode 0
         NOP                             ; NOP before setting GIE required 
         bis     #GIE+LPM0, SR           ; Enables GIE + LPM0     
@@ -120,7 +133,29 @@ main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
 
         JMP $                           ; jump to current location '$'
         NOP                             ; (endless loop)
+    
+; ===== Initialize subroutine. [ADD ALL REGISTER THAT NEED TO BE INIT HERE]=====
+; ===== 
+; Objective: Initialize the various registers utilized by the game.
+; =====
+; ===== Postconditions: Modifies: R10 =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/17/22 =====
+SUB_initializeValues:
+        mov #0, R10 ; Start on the title screen
+        call #SUB_titleScreen ; initialize it 
+        ret 
         
+; ===== Button Game State Manager Subroutine =====
+; ===== Objective: Controls *button* sensitive game states. =====
+; ===== Preconditions: Must be called from the PORT1 ISR. =====
+; ===== Postconditions: Draws the title screen onto the LCD. =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/17/22 =====
+SUB_buttonStateManager: 
+        cmp #0, R10
+        jeq SUB_titleScreen
+        ret
 
 ; ===== Title screen display subroutines. =====
 ; ===== 
@@ -128,24 +163,17 @@ main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ;            S1.
 ; =====
 ; ===== 
-; Preconditions: An array of length 7 with the indices of the characters to be 
+; Preconditions: An array of length 6 with the indices of the characters to be 
 ;                drawn must be properly defined. 
 ; =====
 ; ===== Postconditions: Draws the title screen onto the LCD. =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/14/22 =====
+; ===== Date: 11/14/22-11/17/22 =====
 SUB_titleScreen:
-        mov #0, R14 ; Initialize states
         mov #TITLE, R15
         call #SUB_displayCharacterArray
-        call #SUB_interruptManager
         ret
         
-SUB_interruptManager: ; interrupts will always return to this subroutine
-        cmp #1, R14
-        jmp 
-        
-
 ; ===== General LCD display subroutines. =====
 ; ===== 
 ; Objective: Given an array of numbers, displays the characters at those 
@@ -160,7 +188,7 @@ SUB_interruptManager: ; interrupts will always return to this subroutine
 ; Postconditions: Draws the indicated numbers or characters onto the LCD.
 ; =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/14/22 =====
+; ===== Date: 11/14/22-11/17/22 =====
 SUB_displayCharacterArray: ; sets up registers to be utilized by the subroutines
         push.w R5 ; Lookup index for the character arrays
         push.w R6 ; Iteration index for LCD memory offsets/6 array elements
@@ -171,7 +199,7 @@ SUB_displayCharacterArray: ; sets up registers to be utilized by the subroutines
 
 displayCharacterData:
         ; Perform this check first (edge case: Empty char in last index of arr)
-        cmp #5, R6 ; end of the array 
+        cmp #6, R6 ; end of the array 
         jeq endDrawing
         ; Proceed with drawing all other characters
         mov.b @R15, R5 ; Store value of the index for the current letter to draw
@@ -193,76 +221,31 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R5
         ret  
 
-; ===== Interupt subroutines. =====
-; Interrupt subroutine 1 (redocument later)
-ISR_TIMER:
-        nop
-
-
-; ===== P1 Interrupt Subroutines. =====
-; ===== 
-; Objective: Attend user presses on S1/2 appropriately via interrupts and 
-;            update the registers managing the values/status of P1.1/2. 
-; =====
-; ===== 
-; Postconditions: 
-; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/15/22 =====
-ISR_PORT1:
-        ; Check S1
-        bit.b   #00000010B, &P1IFG ; Test P1IFG to detect interrupt from S1    
-        jz      PORT1_END          ; S1 not pressed. 0 == interrupt not pending
-        jmp     S1_CHECK
-        ; Check S2
-        bit.b   #00000100B, &P1IFG
-        jz      PORT1_END  ; S2 not pressed, end subroutine
-        jmp     S2_CHECK
-
-S1_CHECK:
-        call    #SUB_S1P1Debounce  ; Check button states via debouncing
-        tst.b   R14
-        jnz     PORT1_END      ; Debouncing failed
-        mov #1, R14                ; press successful
-        jmp     PORT1_END
-
-S2_CHECK:     
-        call    #SUB_S1P2Debounce ; Check button states via debouncing
-        tst.b   R14
-        jnz     PORT1_END     ; Debouncing failed
-        mov #2, R14 
-        jmp     PORT1_END               
-
-PORT1_END:
-        bic.b #00000110B, &P1IFG       ; Clear interrupt flags
-        reti
-        END
-        
 ; ===== Debounce subroutines. =====
 ; ===== 
 ; Objective: Debounce subroutines recheck whether certain buttons were 
 ;            really pressed.
 ; =====
 ; ===== 
-; Postconditions: Stores a 0 in R14 when S1/2 are succesfully pressed. 
+; Postconditions:  
 ; =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/15/22 =====
-SUB_S1P1Debounce: ; S1 Pin 1
-        call #delay ; debouncing
+; ===== Date: 11/15/22-11/17/22 =====
+SUB_S1P1Debounce: ; S1
+        call #SUB_delay  ; debouncing
         mov.b &P1IN, R14 ; recheck P1.1 value to check if it was really pressed
         and.b #BIT1, R14 
         sub.b #00000010B, R14 ; should be no longer pressed, avoids long presses
-                             ; if these are the same, R5 == 0
+                             ; if these are the same, R14 == 0
         ret
  
-SUB_S1P2Debounce: ; S1 Pin 2
-        call #delay ; debouncing
+SUB_S1P2Debounce: ; S2
+        call #SUB_delay  ; debouncing
         mov.b &P1IN, R14 ; recheck P1.2 value to check if it was really pressed
         and.b #BIT2, R14 
         sub.b #00000100B, R14 
         ret
-        
+
 ; ===== Delay subroutines. =====
 ; ===== Objective: Decrements from a large value to stall for time. =====
 ; ===== 
@@ -274,10 +257,67 @@ SUB_S1P2Debounce: ; S1 Pin 2
 SUB_delay:
         push.w R10 ; store original value
         mov #0xFF, R10
-        jmp SUB_delay
+        jmp loop
         
-SUB_loop:
+loop:
         dec R10
-        jnz SUB_loop
+        jnz loop
         pop R10 
         ret ; returns to whatever subroutine the delay was called from
+
+; ===== Interupt subroutines. =====
+; Interrupt subroutine 1 (redocument later)
+ISR_TIMER:
+        reti
+        
+; ===== P1 Interrupt Subroutines. =====
+; ===== 
+; Objective: Attend user presses on S1/2 appropriately via interrupts and 
+;            update the registers managing the values/status of P1.1/2 (R14). 
+; =====
+; ===== 
+; Postconditions: 
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/15/22-11/17/22 =====
+ISR_PORT1:
+        bic.b #00000110B, &P1IFG       ; Clear interrupt flags
+        ; Check S1
+        bit.b   #00000010B, &P1IFG ; Test P1IFG to detect interrupt from S1    
+        jz      PORT1_ISR_END          ; S1 not pressed. 0 == interrupt not pending
+        jmp     S1_CHECK
+        ; Check S2
+        bit.b   #00000100B, &P1IFG
+        jz      PORT1_ISR_END  ; S2 not pressed, end subroutine
+        jmp     S2_CHECK
+
+S1_CHECK:
+        call    #SUB_S1P1Debounce  ; Check button states via debouncing
+        tst.b   R14
+        jnz     PORT1_ISR_END      ; Debouncing failed
+        jmp     S1Success
+
+S2_CHECK:     
+        call    #SUB_S1P2Debounce ; Check button states via debouncing
+        tst.b   R14
+        jnz     PORT1_ISR_END     ; Debouncing failed
+        jmp     S2Success
+
+S1Success:
+        cmp #0, R10 ; on the title screen, transitions to Record
+        jeq recordStateTransition ; transitions by incrementing by 1
+        jmp PORT1_ISR_END
+        
+S2Success:
+        jmp PORT1_ISR_END
+
+recordStateTransition:      ; R10 == 1 (the high score mode)
+        inc R10
+        mov #2, &LCDCMEMCTL ; clear LCD memory before going to next state
+        jmp PORT1_ISR_END
+
+PORT1_ISR_END:
+        call #SUB_buttonStateManager  ; manage user state
+        reti
+        END
+        
