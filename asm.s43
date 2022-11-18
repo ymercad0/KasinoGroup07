@@ -170,7 +170,7 @@ SUB_initializeValues:
         mov #0, R10 ; Start on the title screen
         mov #0, R13 ; Don't need to keep track of time initially 
         mov #0, R14 ; 0 timer counts 
-        call #SUB_FRAMSetup
+        call #SUB_FRAMSetup   ; Setup FRAM 
         call #SUB_titleScreen ; Display the title screen
         ret 
 
@@ -193,7 +193,6 @@ SUB_FRAMSetup:
         ; requirements. FRAM has been correctly set up if the first 6
         ; places in memory contain the FRAM array of characters.
         push.w R6 ; index for FRAM array
-        push.w R7 ; Store value from R5/FRAM array
         mov #0, R6
         jmp validateFRAM
 
@@ -201,13 +200,12 @@ validateFRAM:
         cmp #6, R6 ; end of FRAM array. FRAM has been previously initialized
                    ; correctly. Don't overwrite its contents.
         jeq endFRAMSetup
-        mov.b @R5, R7 ; check the specific value from the FRAM array
-        cmp.b R7, FRAM(R6) ; Compare memory in FRAM to FRAM array contents.
-                           ; They should line up. 
+        cmp.b @R5, FRAM(R6) ; Compare memory in FRAM to FRAM array contents.
+                            ; They should line up. 
         jne initializeFRAM
         inc R5 ; go to next value in FRAM array memory
-        inc R6
-        jmp validateFRAM ; FRAM memory locations have been setup already
+        inc R6 ; increase FRAM array index
+        jmp validateFRAM 
         
 initializeFRAM: ; set XXXXXX for top scorer and 0 for their score
         ; This certifies that our code has correctly accessed the FRAM locations.
@@ -221,7 +219,6 @@ initializeFRAM: ; set XXXXXX for top scorer and 0 for their score
         jmp endFRAMSetup
 
 endFRAMSetup:
-        pop R7
         pop R6
         pop R5
         ret
@@ -276,10 +273,10 @@ SUB_titleScreen:
         
 ; ===== Record screen subroutines =====
 ; ===== 
-; Objective: Loops around the various record screens based on R4's value.
+; Objective: Loops around the various Record screens based on R4's value.
 ; =====
 ; ===== 
-; Preconditions: R4 must be 0.  
+; Preconditions: R4 must be 0 and the screen must be cleared.
 ; =====
 ; ===== 
 ; Postconditions: Draws the various record screens onto the LCD. R4 is 
@@ -374,9 +371,11 @@ updateScreen:
 ; Preconditions: R15 must be an array of size 6 containing only numerical values, 
 ;                in order to access the values at that index and write it
 ;                to the LCD's memory. Screen should also be cleared beforehand.
+;                Each integer, representing the character to be drawn, should
+;                go from 0-36.
 ; =====
 ; ===== 
-; Postconditions: Draws the indicated numbers or characters onto the LCD.
+; Postconditions: Draws the indicated numbers or letters onto the LCD.
 ; =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22-11/17/22 =====
@@ -507,7 +506,7 @@ recordStateTransition:
 playerStateTransition:
         inc R10             ; R10 == 2 (the Player Select screen)
         call #SUB_disableTimer ; Not needed for player select
-        mov #2, &LCDCMEMCTL ; clear screen before going to next state
+        mov #2, &LCDCMEMCTL 
         jmp PORT1_ISR_END
 
 PORT1_ISR_END:
