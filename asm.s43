@@ -31,7 +31,7 @@ CHAR_L db 0x00, 0x50, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x22, 0x00
 ; ==== Numbers 0-9. Memory from previous array. ====
 ;           0     1     2     3     4     5     6     7     8     9    EMPTY
 DIGIT_H db 0xFC, 0x60, 0xDB, 0xF3, 0x67, 0xB7, 0xBF, 0x80, 0xFF, 0xF7, 0x00
-DIGIT_L db 0x28, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
+DIGIT_L db 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
 ; Indices:  26    27    28    29    30    31    32    33    34    35    36
 
 ; ==== 
@@ -43,8 +43,19 @@ DIGIT_L db 0x28, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
 LCD_OFFSETS db 9, 5, 3, 18, 14, 7
 
 ; ==== Program Screen Arrays ====
+; Must be of length 6
 ;        K   A  S   I   N  O  
-TITLE db 10, 0, 18, 8, 13, 14
+TITLE  db 10, 0, 18, 8, 13, 14
+;         R   E  C  O   R   D
+RECORD db 17, 4, 2, 14, 17, 3
+;         T   E  S   T
+TEST   db 19, 4, 18, 19, 36, 36
+;         P   L   A  Y   E  R
+PLAYER db 15, 11, 0, 24, 4, 17
+;                 X   X   X   X   X   X
+NO_HIGH_SCORE db 23, 23, 23, 23, 23, 23
+;         F  R   A  M 
+FRAM   db 5, 17, 0, 12, 36, 36
 
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
@@ -52,7 +63,10 @@ TITLE db 10, 0, 18, 8, 13, 14
 ; indices, checks, or iterations.  
 ;
 ; ==== Registers ==== 
-; R10: Stores what state to render. Each state is defined by a constant. 
+; R4: Stores the current screen page for the Record screens
+; R10: Stores what state to render. Each state is defined by a constant.
+; R13: Keeps track of the desired elapsed time (in seconds).
+; R14: Increases each time the timer interrupt is called. 
 ; R15: Stores the starting address of the array containing the indices 
 ;      needed to draw a character.
 
@@ -64,6 +78,12 @@ TITLE db 10, 0, 18, 8, 13, 14
 ; 3: Test Mode
 ; 4: Pro Mode
 ; 5: Scores
+
+; ==== FRAM Memory ====
+; FRAM: 0x4400-0x4405
+; High Scorer Name: 0x4406-0x440B
+; High Score: 0x440C
+; Test High Score: 0x440D
 
 init:   MOV     #SFE(CSTACK), SP        ; set up stack
 
@@ -131,30 +151,112 @@ main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
         JMP $                           ; jump to current location '$'
         NOP                             ; (endless loop)
     
-; ===== Initialize subroutine. [ADD REGISTER THAT NEED TO BE INIT HERE]=====
+; ===== Initialization subroutines =====
 ; ===== 
 ; Objective: Initialize the various registers and settings utilized by the game.
 ; =====
-; ===== Postconditions: Modifies: R10 =====
+; ===== 
+; Preconditions: Must only be called the first time the program runs on an MSP 
+;                or when the MSP is turned on. 
+; =====
+; ===== 
+; Postconditions: Modifies any registers or locations in memory that store
+;                 data that persists during the program.  
+; =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/17/22 =====
 SUB_initializeValues:
+        mov #0, R4 ; controls the Record screens
         mov #0, R10 ; Start on the title screen
-        call #SUB_titleScreen ; Display it 
+        mov #0, R13 ; Don't need to keep track of time initially 
+        mov #0, R14 ; 0 timer counts 
+        call #SUB_FRAMSetup
+        call #SUB_titleScreen ; Display the title screen
         ret 
+
+; ===== FRAM initializer subroutines =====
+; ===== 
+; Objective: Verify if FRAM contains high score data, else, initialize it.
+; =====
+; ===== 
+; Postconditions: Modifies FRAM, if it hasn't been initialized it,  
+;                 by initializing it with an empty player  (XXXXXX) 
+;                 and a score of 0. Else, leaves its contents untouched. 
+;                 Stores values in contiguous places in memory.
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/17/22-11/18/22 =====
+SUB_FRAMSetup:
+        push.w R5
+        mov &0x4400, R5 ; first location in memory for FRAM
+        ; Check whether FRAM has been correctly initialized based on 
+        ; requirements. FRAM has been correctly set up if the first 6
+        ; places in memory contain the FRAM array of characters.
+        push.w R6 ; index for FRAM array
+        push.w R7 ; Store value from R5/FRAM array
+        mov #0, R6
+        jmp validateFRAM
+
+validateFRAM:
+        cmp #6, R6 ; end of FRAM array. FRAM has been previously initialized
+                   ; correctly. Don't overwrite its contents.
+        jeq endFRAMSetup
+        mov.b @R5, R7 ; check the specific value from the FRAM array
+        cmp.b R7, FRAM(R6) ; Compare memory in FRAM to FRAM array contents.
+                           ; They should line up. 
+        jne initializeFRAM
+        inc R5 ; go to next value in FRAM array memory
+        inc R6
+        jmp validateFRAM ; FRAM memory locations have been setup already
         
+initializeFRAM: ; set XXXXXX for top scorer and 0 for their score
+        ; This certifies that our code has correctly accessed the FRAM locations.
+        mov #FRAM, &0x4400 
+        ; Store a dummy higher scorer
+        mov #NO_HIGH_SCORE, &0x4406
+        ; Store 0 as highest score so far 
+        mov.b #0, &0x440C
+        ; Test score
+        mov.b #0, &0x440D
+        jmp endFRAMSetup
+
+endFRAMSetup:
+        pop R7
+        pop R6
+        pop R5
+        ret
+
+; ===== Game State Managers =====
 ; ===== Button Game State Manager Subroutine =====
 ; ===== Objective: Controls *button* sensitive game states. =====
 ; ===== Preconditions: Must be called from the PORT1 ISR. =====
-; ===== Postconditions: Draws the title screen onto the LCD. =====
+; ===== 
+; Postconditions: Executes the corresponding state based on the value of R10.
+; =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/17/22 =====
 SUB_buttonStateManager: 
         cmp #0, R10
         jeq SUB_titleScreen
+        cmp #1, R10
+        jeq SUB_recordScreen
         ret
-
-; ===== Title screen display subroutines. =====
+       
+; ===== Timer State Manager Subroutines =====
+; ===== Objective: Controls *time* sensitive game states or actions. =====
+; ===== Preconditions: Must be called from the TIMER ISR. =====
+; ===== 
+; Postconditions: Executes the corresponding state based on the current state
+;                 (R10). 
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/18/22 =====
+SUB_timerStateManager:
+        cmp #1, R10 ; currently in the record screen
+        jeq SUB_updateRecordScreen
+        ret
+        
+; ===== Title screen display subroutine =====
 ; ===== 
 ; Objective: Displays the title screen and remains here until the user presses
 ;            S1.
@@ -167,8 +269,100 @@ SUB_buttonStateManager:
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22-11/17/22 =====
 SUB_titleScreen:
+        call #SUB_disableTimer ; not needed for the timer screen
         mov #TITLE, R15
         call #SUB_displayCharacterArray
+        ret
+        
+; ===== Record screen subroutines =====
+; ===== 
+; Objective: Loops around the various record screens based on R4's value.
+; =====
+; ===== 
+; Preconditions: R4 must be 0.  
+; =====
+; ===== 
+; Postconditions: Draws the various record screens onto the LCD. R4 is 
+;                 incremented every 2 seconds by the timer. 
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/17/22-11/18/22 =====
+SUB_recordScreen:
+        ; RECORD
+        cmp #0, R4
+        jeq drawRecord
+        ; Record Holder
+        cmp #1, R4
+        jeq drawTopScorer
+        ; Record Score
+        cmp #2, R4
+        jeq drawTopProScore
+        ; TEST
+        cmp #3, R4
+        jeq drawTest
+        ; Test Score
+        cmp #4, R4
+        jeq drawTestScore
+        jmp endRecordScreen
+        
+drawRecord:
+        mov #RECORD, R15
+        call #SUB_displayCharacterArray
+        jmp endRecordScreen
+
+drawTopScorer:
+        mov &0x4406, R15 ; Top scorer is stored here in FRAM
+        call #SUB_displayCharacterArray
+        jmp endRecordScreen
+        
+drawTopProScore:
+        mov.b &0x440C, R15 ; Top PRO mode score is stored here in FRAM
+        jmp drawScore
+
+drawTest:
+        mov #TEST, R15
+        call #SUB_displayCharacterArray
+        jmp endRecordScreen
+        
+drawTestScore:
+        mov.b &0x440D, R15 ; Top TEST mode score is stored here in FRAM
+        jmp drawScore
+
+drawScore:
+      ; Draw onto memory the value of that num
+      mov.b DIGIT_H(R15), &0xA27  ; R15 is in the range of [0, 6]
+      mov.b DIGIT_L(R15), &0xA28
+      jmp endRecordScreen
+
+endRecordScreen:
+        ret
+
+; ===== Update record screen subroutine =====
+; ===== 
+; Objective: Updates the Record screen display based on the timer and the 
+;            current "page". 
+; =====
+; ===== 
+; Preconditions: R4 must be between 0-4.  
+; =====
+; ===== 
+; Postconditions: Updates the current record screen onto the LCD. 
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/18/22 =====
+SUB_updateRecordScreen:
+        cmp #4, R4 ; loop back to the starting screen
+        jeq resetR4Index
+        inc R4
+        jmp updateScreen
+
+resetR4Index:
+        clr R4
+        jmp updateScreen
+
+updateScreen:
+        mov #2, &LCDCMEMCTL ; clear screen before drawing a new record screen
+        call #SUB_recordScreen  
         ret
         
 ; ===== General LCD display subroutines. =====
@@ -218,12 +412,57 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R5
         ret  
 
+; ===== Timer management subroutines =====
+; ===== 
+; Objective: Control the timer ISR per the program's needs.
+; =====
+; ===== 
+; Postconditions: Enables, disables, or resets the current timer.
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/18/22 =====
+SUB_disableTimer: ; Disabling a timer prevents registers from incrementing
+                  ; infinitely and potentially overflowing. 
+        clr R13   ; Clear current cycle count and desired cycle count
+        clr R14
+        bic #CCIE, &TA0CCTL0 ; Disable the timer
+        ret
+        
+SUB_enableTimer: 
+        bis #CCIE, &TA0CCTL0 ; Enable the timer. R13/R14 will have been cleared
+                             ; from before. This is always called after 
+                             ; disabling the timer.
+        ret
+
 ; ===== Interupt subroutines. =====
-; Interrupt subroutine 1 (redocument later)
+; ===== Timer Interrupt Subroutine =====
+; ===== 
+; Objective: Control the program's time sensitive events.
+; =====
+; ===== 
+; Preconditions: Can only handle time dependent states or transitions. The timer
+;                interrupt is called every 1/8 of a second. This allows us to
+;                control more specific units of time.  
+; =====
+; ===== 
+; Postconditions: Switches to a different state or executes a program action
+;                 based on the current time elapsed. 
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/18/22 =====
 ISR_TIMER:
+        inc R14 ; keeps track of the timer's ticks
+        cmp R13, R14  ; is the current number of cycles == desired #cycles
+        jne TIMER_ISR_END ; not equal. End and continue to increase time
+        ; Desired number of seconds have elapsed
+        call #SUB_timerStateManager
+        clr R14 ; reset the count
+        jmp TIMER_ISR_END
+
+TIMER_ISR_END:
         reti
         
-; ===== P1 Interrupt Subroutines. =====
+; ===== Button Interrupt Subroutines. =====
 ; ===== 
 ; Objective: Attend user presses on S1/2 appropriately via interrupts.
 ; =====
@@ -252,10 +491,22 @@ S1Success: ; S1 or S2 have been succesfully pressed
         jmp PORT1_ISR_END
         
 S2Success:
+        cmp #1, R10 ; quits the record screen
+        jeq playerStateTransition
         jmp PORT1_ISR_END
 
+; These transitions must be done from within the P1 ISR subroutine since
+; different buttons activate different states.
 recordStateTransition:      
-        inc R10             ; R10 == 1 (the high score mode)
+        inc R10             ; R10 == 1 (the Record Scores display)
+        mov #16, R13        ; Set transitions to every 2 seconds
+        call #SUB_enableTimer ; Enable timer
+        mov #2, &LCDCMEMCTL ; clear screen before going to next state
+        jmp PORT1_ISR_END
+        
+playerStateTransition:
+        inc R10             ; R10 == 2 (the Player Select screen)
+        call #SUB_disableTimer ; Not needed for player select
         mov #2, &LCDCMEMCTL ; clear screen before going to next state
         jmp PORT1_ISR_END
 
