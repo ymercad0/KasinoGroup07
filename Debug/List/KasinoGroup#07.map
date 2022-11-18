@@ -2,7 +2,7 @@
 #                                                                              #
 #      IAR Universal Linker V6.6.2.104                                         #
 #                                                                              #
-#           Link time     =  17/Nov/2022  16:28:02                             #
+#           Link time     =  18/Nov/2022  13:29:35                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
 #                            ebug\List\KasinoGroup#07.map"                     #
@@ -12,7 +12,7 @@
 #                            UBROF version 10.0.6                              #
 #                            Using library modules for C-SPY (-rt)             #
 #           Command line  =  -f                                                #
-#                            C:\Users\YARIEL~1\AppData\Local\Temp\EW646C.tmp   #
+#                            C:\Users\YARIEL~1\AppData\Local\Temp\EW6081.tmp   #
 #                            ("C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\ #
 #                            Debug\Obj\asm.r43"                                #
 #                            -o                                                #
@@ -132,37 +132,63 @@ CSTACK
   Segment part 0. ROOT 
     -------------------------------------------------------------------------
 <CODE> 1 (was CODE)
-  Relative segment, address: 4400 - 6153 (0x1d54 bytes), align: 1
+  Relative segment, address: 4400 - 626B (0x1e6c bytes), align: 1
   Segment part 1. ROOT        Intra module refs:   Absolute parts
            ENTRY                   ADDRESS         REF BY
            =====                   =======         ======
-           main                    60C4 
+           main                    60E2 
            LOCAL                   ADDRESS         
            =====                   =======         
-           ISR_TIMER               6128 
-           ISR_PORT1               612A 
-           init                    6056 
+           ISR_TIMER               621A 
+           ISR_PORT1               622A 
+           init                    6074 
            CHAR_H                  6000 
            CHAR_L                  601A 
            DIGIT_H                 6034 
            DIGIT_L                 603F 
            LCD_OFFSETS             604A 
            TITLE                   6050 
-           UnlockGPIO              605A 
+           RECORD                  6056 
+           TEST                    605C 
+           PLAYER                  6062 
+           NO_HIGH_SCORE           6068 
+           FRAM                    606E 
+           UnlockGPIO              6078 
            SUB_setupDeviceHardware
-                                   605E 
-           SUB_initializeValues    60DA 
-           SUB_titleScreen         60E8 
+                                   607C 
+           SUB_initializeValues    60F8 
+           SUB_FRAMSetup           610A 
+           SUB_titleScreen         615A 
+           validateFRAM            6118 
+           endFRAMSetup            6142 
+           initializeFRAM          612C 
            SUB_buttonStateManager
-                                   60E2 
+                                   614A 
+           SUB_recordScreen        6168 
+           SUB_timerStateManager   6154 
+           SUB_updateRecordScreen
+                                   61BA 
+           SUB_disableTimer        6206 
            SUB_displayCharacterArray
-                                   60F2 
-           displayCharacterData    60FC 
-           endDrawing              6120 
-           S1Success               6138 
-           S2Success               613E 
-           PORT1_ISR_END           6148 
-           recordStateTransition   6140 
+                                   61D0 
+           drawRecord              6180 
+           drawTopScorer           618A 
+           drawTopProScore         6194 
+           drawTest                619A 
+           drawTestScore           61A4 
+           endRecordScreen         61B8 
+           drawScore               61AA 
+           resetR4Index            61C2 
+           updateScreen            61C6 
+           displayCharacterData    61DA 
+           endDrawing              61FE 
+           SUB_enableTimer         6212 
+           TIMER_ISR_END           6228 
+           S1Success               6238 
+           S2Success               623E 
+           PORT1_ISR_END           6260 
+           recordStateTransition   6244 
+           playerStateTransition   6254 
 
 
 
@@ -177,7 +203,7 @@ CSTACK
 SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
 =======              =====    =============   ===========     ====  ====  =====
 CSTACK                                 2360 - 23FF              A0   rel    1
-<CODE> 1                               4400 - 6153            1D54   rel    1
+<CODE> 1                               4400 - 626B            1E6C   rel    1
                                        FFDA - FFDB               2  aseg  
                                        FFE8 - FFE9               2  aseg  
                                        FFFE - FFFF               2  aseg  
@@ -188,7 +214,7 @@ CSTACK                                 2360 - 23FF              A0   rel    1
                 *                                      *
                 ****************************************
 
- 7 508 bytes of CODE memory (+ 6 absolute )
+ 7 788 bytes of CODE memory (+ 6 absolute )
    160 bytes of DATA memory
 
 Errors: none
