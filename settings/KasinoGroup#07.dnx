@@ -1,5 +1,50 @@
 <?xml version="1.0"?>
 <settings>
+    <Stack>
+        <FillEnabled>0</FillEnabled>
+        <OverflowWarningsEnabled>1</OverflowWarningsEnabled>
+        <WarningThreshold>90</WarningThreshold>
+        <SpWarningsEnabled>1</SpWarningsEnabled>
+        <WarnLogOnly>1</WarnLogOnly>
+        <UseTrigger>1</UseTrigger>
+        <TriggerName>main</TriggerName>
+        <LimitSize>0</LimitSize>
+        <ByteLimit>50</ByteLimit>
+    </Stack>
+    <EEM_State_Storage>
+        <Buffer>010000000000000000000000</Buffer>
+    </EEM_State_Storage>
+    <EEM_Sequencer>
+        <Buffer>000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</Buffer>
+    </EEM_Sequencer>
+    <EEM_Cycle_Counter_0>
+        <Counter0>0000000000000000000000000000000000000000000000000000000000000000</Counter0>
+    </EEM_Cycle_Counter_0>
+    <EEM_Cycle_Counter_1>
+        <Counter1>0000000000000000000000000000000000000000000000000000000000000000</Counter1>
+    </EEM_Cycle_Counter_1>
+    <DebugChecksum>
+        <Checksum>3790517357</Checksum>
+    </DebugChecksum>
+    <CallStack>
+        <ShowArgs>0</ShowArgs>
+    </CallStack>
+    <Disassembly>
+        <InstrCount>0</InstrCount>
+        <MixedMode>1</MixedMode>
+    </Disassembly>
+    <DriverProfiling>
+        <Enabled>0</Enabled>
+        <Mode>1</Mode>
+        <Graph>0</Graph>
+        <Symbiont>0</Symbiont>
+    </DriverProfiling>
+    <CallStackLog>
+        <Enabled>0</Enabled>
+    </CallStackLog>
+    <CallStackStripe>
+        <ShowTiming>1</ShowTiming>
+    </CallStackStripe>
     <InterruptLog>
         <LogEnabled>0</LogEnabled>
         <GraphEnabled>0</GraphEnabled>
@@ -15,17 +60,6 @@
         <SumEnabled>0</SumEnabled>
         <ShowTimeSum>1</ShowTimeSum>
     </DataLog>
-    <Stack>
-        <FillEnabled>0</FillEnabled>
-        <OverflowWarningsEnabled>1</OverflowWarningsEnabled>
-        <WarningThreshold>90</WarningThreshold>
-        <SpWarningsEnabled>1</SpWarningsEnabled>
-        <WarnLogOnly>1</WarnLogOnly>
-        <UseTrigger>1</UseTrigger>
-        <TriggerName>main</TriggerName>
-        <LimitSize>0</LimitSize>
-        <ByteLimit>50</ByteLimit>
-    </Stack>
     <Breakpoints2>
         <Count>0</Count>
     </Breakpoints2>
@@ -48,27 +82,6 @@
         <Freq>1000000</Freq>
         <FreqHi>0</FreqHi>
     </Simulator>
-    <EEM_State_Storage>
-        <Buffer>010000000000000000000000</Buffer>
-    </EEM_State_Storage>
-    <EEM_Sequencer>
-        <Buffer>000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</Buffer>
-    </EEM_Sequencer>
-    <EEM_Cycle_Counter_0>
-        <Counter0>0000000000000000000000000000000000000000000000000000000000000000</Counter0>
-    </EEM_Cycle_Counter_0>
-    <EEM_Cycle_Counter_1>
-        <Counter1>0000000000000000000000000000000000000000000000000000000000000000</Counter1>
-    </EEM_Cycle_Counter_1>
-    <DebugChecksum>
-        <Checksum>1828043166</Checksum>
-    </DebugChecksum>
-    <CallStack>
-        <ShowArgs>0</ShowArgs>
-    </CallStack>
-    <Disassembly>
-        <MixedMode>1</MixedMode>
-    </Disassembly>
     <PowerLog>
         <Title_0>Energy</Title_0>
         <Symbol_0>0 4 0</Symbol_0>
@@ -82,26 +95,9 @@
         <LiveEnabled>0</LiveEnabled>
         <LiveFile>PowerLogLive.log</LiveFile>
     </PowerLog>
-    <TermIOLog>
-        <LoggingEnabled>_ 0</LoggingEnabled>
-        <LogFile>_ ""</LogFile>
-    </TermIOLog>
-    <PowerProbe>
-        <Frequency>10000</Frequency>
-        <Probe0>Current</Probe0>
-        <ProbeSetup0>0 1 1 2 0 0</ProbeSetup0>
-        <Probe1>Voltage</Probe1>
-        <ProbeSetup1>1 1 1 4 0 0</ProbeSetup1>
-        <Probe2>Energy</Probe2>
-        <ProbeSetup2>4 1 1 10 0 0</ProbeSetup2>
-    </PowerProbe>
-    <LogFile>
-        <LoggingEnabled>_ 0</LoggingEnabled>
-        <LogFile>_ ""</LogFile>
-        <Category>_ 0</Category>
-    </LogFile>
     <Breakpoints>
-        <Count>0</Count>
+        <Bp0>_ "STD_CODE" "Memory:0x60a4" 0 0 0 0 "" 0 ""</Bp0>
+        <Count>1</Count>
     </Breakpoints>
     <FET>
         <Clock_mode>46</Clock_mode>
@@ -125,8 +121,26 @@
         <all_registers>0</all_registers>
         <File_name />
     </Memory_Dump>
+    <TermIOLog>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+    </TermIOLog>
+    <LogFile>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+        <Category>_ 0</Category>
+    </LogFile>
     <Aliases>
         <Count>0</Count>
         <SuppressDialog>0</SuppressDialog>
     </Aliases>
+    <PowerProbe>
+        <Frequency>10000</Frequency>
+        <Probe0>Current</Probe0>
+        <ProbeSetup0>0 1 1 2 0 0</ProbeSetup0>
+        <Probe1>Voltage</Probe1>
+        <ProbeSetup1>1 1 1 4 0 0</ProbeSetup1>
+        <Probe2>Energy</Probe2>
+        <ProbeSetup2>4 1 1 10 0 0</ProbeSetup2>
+    </PowerProbe>
 </settings>

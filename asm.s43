@@ -56,7 +56,22 @@ PLAYER db 15, 11, 0, 24, 4, 17
 NO_HIGH_SCORE db 23, 23, 23, 23, 23, 23
 ;         F  R   A  M 
 FRAM   db 5, 17, 0, 12, 36, 36
-
+;         L   U   I  S
+LUIS   db 11, 20, 8, 18, 36, 36
+;         A  N   T   H  O   N
+ANTHON db 0, 13, 19, 7, 14, 13
+;         Y   A  R   I  E  L
+YARIEL db 24, 0, 17, 8, 4, 11
+;         N   I  C  O   L   E
+NICOLE db 13, 8, 2, 14, 11, 4
+;         D  R   A  C  I  R
+DRACIR db 3, 17, 0, 2, 8, 17
+;         U   I  M   E  R   F
+UIMERF db 20, 8, 12, 4, 17, 5
+;         O   R   A  V   A  N
+ORAVAN db 14, 17, 0, 21, 0, 13
+NAMES  db LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
+ALIGN 1
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
 ; current program loop. This is done to differentiate from registers used for
@@ -237,6 +252,10 @@ SUB_buttonStateManager:
         jeq SUB_titleScreen
         cmp #1, R10
         jeq SUB_recordScreen
+        ; EXPERIMENTAL
+        cmp #2, R10
+        jeq SUB_playerSelectionScreen
+        ; =====
         ret
        
 ; ===== Timer State Manager Subroutines =====
@@ -362,6 +381,133 @@ updateScreen:
         call #SUB_recordScreen  
         ret
         
+; ===== Player Selection Screen Subroutines =====
+; ===== 
+; Objective: Loops around the names of possible players based on the value of R4. 
+; Uses R6 to monitor button pressing and R8 as an iterator to identify what name
+; to display.
+; =====
+; ===== 
+; Preconditions: R8 must be within the range of 0-8.
+; =====
+; ===== 
+; Postconditions: Draws the various player names onto the LCD and saves the 
+; selected option on R13.
+; =====
+; ===== Author: Nicole Roman =====
+; ===== Date: 11/19/22-11/21/22 =====
+SUB_playerSelectionScreen:
+        push.w  R6                    
+        push.w  R8                      
+        mov     #0,R13
+        mov     #0,R8                  
+        mov     #PLAYER, R15
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus
+
+showPlayerScreen:
+        inc     R8
+        cmp.b   #8, R8
+        jeq     resetPlayerIterator
+        cmp     #1,R8
+        jeq     showLuis
+        cmp     #2,R8
+        jeq     showAnthon
+        cmp     #3,R8
+        jeq     showYariel
+        cmp     #4,R8
+        jeq     showNicole
+        cmp     #5,R8
+        jeq     showDracir
+        cmp     #6,R8
+        jeq     showUimerf
+        cmp     #7,R8
+        jeq     showOravan
+        jmp     checkButtonStatus        
+
+resetPlayerIterator:
+        clr     R8
+        jmp     showPlayerScreen
+showLuis:
+        mov     #LUIS,R15
+        mov     #LUIS,R13
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus    
+showAnthon:
+        mov     #ANTHON,R15
+        mov     #ANTHON,R13
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus    
+showYariel:
+        mov     #YARIEL,R15
+        mov     #YARIEL,R13
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus    
+showNicole:
+        mov     #NICOLE,R15
+        mov     #NICOLE,R13
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus    
+showDracir:
+        mov     #DRACIR,R15
+        mov     #DRACIR,R13
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus   
+showUimerf:
+        mov     #UIMERF,R15
+        mov     #UIMERF,R13
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus    
+showOravan:
+        mov     #ORAVAN,R15
+        mov     #ORAVAN,R13
+        call    #SUB_displayCharacterArray
+        jmp     checkButtonStatus   
+checkButtonStatus:
+        mov.b   &P1IN, R6               
+        and.b   #00000110B, R6          
+        cmp.b   #00000100B, R6          
+        jeq     showPlayerDelayed
+        mov.b   &P1IN, R6
+        and.b   #00000110B, R6
+        cmp.b   #00000010B, R6        
+        jeq     playerSelected        
+        jmp     checkButtonStatus       
+
+showPlayerDelayed:
+        call    #SUB_delay
+        mov.b   &P1IN, R6               
+        and.b   #00000110B, R6          
+        cmp.b   #00000110B, R6  
+        mov     #2,LCDCMEMCTL
+        jeq     showPlayerScreen        
+        jmp     checkButtonStatus        
+
+playerSelected:
+        call    #SUB_delay
+        mov.b   &P1IN, R6
+        and.b   #00000110B, R6
+        cmp.b   #00000110B, R6
+        jeq     endPlayerScreen          
+        jmp     checkButtonStatus         
+ 
+endPlayerScreen:
+        pop     R8
+        pop     R6
+        mov     #2,LCDCMEMCTL
+        ret
+SUB_delay:
+        push.w  R7
+        call    #delayAgain
+        pop     R7
+        ret
+delayAgain:
+        mov     #0x0fff,R7
+        jmp     next
+next:
+        dec     R7
+        jnz     next
+        ret
 ; ===== General LCD display subroutines. =====
 ; ===== 
 ; Objective: Given an array of numbers, displays the characters at those 

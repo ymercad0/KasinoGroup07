@@ -2,28 +2,31 @@
 #                                                                              #
 #      IAR Universal Linker V6.6.2.104                                         #
 #                                                                              #
-#           Link time     =  18/Nov/2022  13:38:08                             #
+#           Link time     =  21/Nov/2022  14:29:18                             #
 #           Target CPU    =  MSP430                                            #
-#           List file     =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
-#                            ebug\List\KasinoGroup#07.map"                     #
-#           Output file 1 =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
-#                            ebug\Exe\KasinoGroup#07.d43"                      #
+#           List file     =  "C:\Users\Xavier Roman\Documents\GitHub\KasinoGro #
+#                            up07\Debug\List\KasinoGroup#07.map"               #
+#           Output file 1 =  "C:\Users\Xavier Roman\Documents\GitHub\KasinoGro #
+#                            up07\Debug\Exe\KasinoGroup#07.d43"                #
 #                            Format: ubrof10                                   #
 #                            UBROF version 10.0.6                              #
 #                            Using library modules for C-SPY (-rt)             #
 #           Command line  =  -f                                                #
-#                            C:\Users\YARIEL~1\AppData\Local\Temp\EW3279.tmp   #
-#                            ("C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\ #
-#                            Debug\Obj\asm.r43"                                #
+#                            C:\Users\XAVIER~1\AppData\Local\Temp\EW5885.tmp   #
+#                            ("C:\Users\Xavier Roman\Documents\GitHub\KasinoGr #
+#                            oup07\Debug\Obj\asm.r43"                          #
 #                            -o                                                #
-#                            "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
-#                            ebug\Exe\KasinoGroup#07.d43"                      #
+#                            "C:\Users\Xavier Roman\Documents\GitHub\KasinoGro #
+#                            up07\Debug\Exe\KasinoGroup#07.d43"                #
 #                            -l                                                #
-#                            "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
-#                            ebug\List\KasinoGroup#07.map"                     #
-#                            -xms "-ID:\Program Files (HDD)\430\LIB\\" -f      #
-#                            "D:\Program Files (HDD)\430\config\linker\lnk430f #
-#                            r6989.xcl"                                        #
+#                            "C:\Users\Xavier Roman\Documents\GitHub\KasinoGro #
+#                            up07\Debug\List\KasinoGroup#07.map"               #
+#                            -xms                                              #
+#                            "-IC:\Program Files (x86)\IAR Systems\Embedded Wo #
+#                            rkbench 8.5\430\LIB\\"                            #
+#                            -f                                                #
+#                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
+#                            bench 8.5\430\config\linker\lnk430fr6989.xcl"     #
 #                            (-cmsp430 -QCODE_I=CODE_ID -QTLS16_I=TLS16_ID     #
 #                            -D__iar_HWMUL=4C0 -Z(CONST)INFO=1800-19FF         #
 #                            -Z(CONST)INFOA=1980-19FF                          #
@@ -55,8 +58,8 @@
 #                            -Z(CONST)IPESIGNATURE=FF88-FF8F                   #
 #                            -Z(CODE)INTVEC=FF90-FFFF                          #
 #                            -Z(CODE)RESET=FFFE-FFFF) -f                       #
-#                            "D:\Program Files (HDD)\430\config\linker\multipl #
-#                            ier32.xcl"                                        #
+#                            "C:\Program Files (x86)\IAR Systems\Embedded Work #
+#                            bench 8.5\430\config\linker\multiplier32.xcl"     #
 #                            (-e?Mul8Hw=?Mul8 -e?Mul16Hw=?Mul16                #
 #                            -e?Mul16to32uHw=?Mul16to32u                       #
 #                            -e?Mul16to32sHw=?Mul16to32s -e?Mul32Hw32=?Mul32   #
@@ -115,7 +118,7 @@ Absolute parts
            __iar_HWMUL             04C0 
     *************************************************************************
 
-  FILE NAME : C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\Debug\Obj\asm.r43
+  FILE NAME : C:\Users\Xavier Roman\Documents\GitHub\KasinoGroup07\Debug\Obj\asm.r43
   PROGRAM MODULE, NAME : main
 
 Absolute parts
@@ -132,16 +135,16 @@ CSTACK
   Segment part 0. ROOT 
     -------------------------------------------------------------------------
 <CODE> 1 (was CODE)
-  Relative segment, address: 4400 - 6269 (0x1e6a bytes), align: 1
+  Relative segment, address: 4400 - 63A5 (0x1fa6 bytes), align: 1
   Segment part 1. ROOT        Intra module refs:   Absolute parts
            ENTRY                   ADDRESS         REF BY
            =====                   =======         ======
-           main                    60E2 
+           main                    6114 
            LOCAL                   ADDRESS         
            =====                   =======         
-           ISR_TIMER               6214 
-           ISR_PORT1               6224 
-           init                    6074 
+           ISR_TIMER               6354 
+           ISR_PORT1               6364 
+           init                    60A6 
            CHAR_H                  6000 
            CHAR_L                  601A 
            DIGIT_H                 6034 
@@ -153,42 +156,68 @@ CSTACK
            PLAYER                  6062 
            NO_HIGH_SCORE           6068 
            FRAM                    606E 
-           UnlockGPIO              6078 
+           LUIS                    6074 
+           ANTHON                  607A 
+           YARIEL                  6080 
+           NICOLE                  6086 
+           DRACIR                  608C 
+           UIMERF                  6092 
+           ORAVAN                  6098 
+           NAMES                   609E 
+           UnlockGPIO              60AA 
            SUB_setupDeviceHardware
-                                   607C 
-           SUB_initializeValues    60F8 
-           SUB_FRAMSetup           610A 
-           SUB_titleScreen         6154 
-           validateFRAM            6116 
-           endFRAMSetup            613E 
-           initializeFRAM          6128 
+                                   60AE 
+           SUB_initializeValues    612A 
+           SUB_FRAMSetup           613C 
+           SUB_titleScreen         618A 
+           validateFRAM            6148 
+           endFRAMSetup            6170 
+           initializeFRAM          615A 
            SUB_buttonStateManager
-                                   6144 
-           SUB_recordScreen        6162 
-           SUB_timerStateManager   614E 
+                                   6176 
+           SUB_recordScreen        6198 
+           SUB_playerSelectionScreen
+                                   6200 
+           SUB_timerStateManager   6184 
            SUB_updateRecordScreen
-                                   61B4 
-           SUB_disableTimer        6200 
+                                   61EA 
+           SUB_disableTimer        6340 
            SUB_displayCharacterArray
-                                   61CA 
-           drawRecord              617A 
-           drawTopScorer           6184 
-           drawTopProScore         618E 
-           drawTest                6194 
-           drawTestScore           619E 
-           endRecordScreen         61B2 
-           drawScore               61A4 
-           resetR4Index            61BC 
-           updateScreen            61C0 
-           displayCharacterData    61D4 
-           endDrawing              61F8 
-           SUB_enableTimer         620C 
-           TIMER_ISR_END           6222 
-           S1Success               6232 
-           S2Success               6238 
-           PORT1_ISR_END           625E 
-           recordStateTransition   623E 
-           playerStateTransition   624E 
+                                   630A 
+           drawRecord              61B0 
+           drawTopScorer           61BA 
+           drawTopProScore         61C4 
+           drawTest                61CA 
+           drawTestScore           61D4 
+           endRecordScreen         61E8 
+           drawScore               61DA 
+           resetR4Index            61F2 
+           updateScreen            61F6 
+           checkButtonStatus       62A4 
+           showPlayerScreen        6212 
+           resetPlayerIterator     623E 
+           showLuis                6242 
+           showAnthon              6250 
+           showYariel              625E 
+           showNicole              626C 
+           showDracir              627A 
+           showUimerf              6288 
+           showOravan              6296 
+           showPlayerDelayed       62BE 
+           playerSelected          62D6 
+           SUB_delay               62F4 
+           endPlayerScreen         62EA 
+           delayAgain              62FE 
+           next                    6304 
+           displayCharacterData    6314 
+           endDrawing              6338 
+           SUB_enableTimer         634C 
+           TIMER_ISR_END           6362 
+           S1Success               6372 
+           S2Success               6378 
+           PORT1_ISR_END           639A 
+           recordStateTransition   637E 
+           playerStateTransition   638E 
 
 
 
@@ -203,7 +232,7 @@ CSTACK
 SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
 =======              =====    =============   ===========     ====  ====  =====
 CSTACK                                 2360 - 23FF              A0   rel    1
-<CODE> 1                               4400 - 6269            1E6A   rel    1
+<CODE> 1                               4400 - 63A5            1FA6   rel    1
                                        FFDA - FFDB               2  aseg  
                                        FFE8 - FFE9               2  aseg  
                                        FFFE - FFFF               2  aseg  
@@ -214,7 +243,7 @@ CSTACK                                 2360 - 23FF              A0   rel    1
                 *                                      *
                 ****************************************
 
- 7 786 bytes of CODE memory (+ 6 absolute )
+ 8 102 bytes of CODE memory (+ 6 absolute )
    160 bytes of DATA memory
 
 Errors: none

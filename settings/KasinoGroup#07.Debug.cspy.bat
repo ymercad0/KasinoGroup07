@@ -25,7 +25,7 @@ if not "%~1" == "" goto debugFile
 
 @echo on 
 
-"D:\Program Files (HDD)\common\bin\cspybat" -f "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\settings\KasinoGroup#07.Debug.general.xcl" --backend -f "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\settings\KasinoGroup#07.Debug.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\common\bin\cspybat" -f "C:\Users\Xavier Roman\Documents\GitHub\KasinoGroup07\settings\KasinoGroup#07.Debug.general.xcl" --backend -f "C:\Users\Xavier Roman\Documents\GitHub\KasinoGroup07\settings\KasinoGroup#07.Debug.driver.xcl" 
 
 @echo off 
 goto end 
@@ -34,7 +34,7 @@ goto end
 
 @echo on 
 
-"D:\Program Files (HDD)\common\bin\cspybat" -f "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\settings\KasinoGroup#07.Debug.general.xcl" "--debug_file=%~1" --backend -f "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\settings\KasinoGroup#07.Debug.driver.xcl" 
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 8.5\common\bin\cspybat" -f "C:\Users\Xavier Roman\Documents\GitHub\KasinoGroup07\settings\KasinoGroup#07.Debug.general.xcl" "--debug_file=%~1" --backend -f "C:\Users\Xavier Roman\Documents\GitHub\KasinoGroup07\settings\KasinoGroup#07.Debug.driver.xcl" 
 
 @echo off 
 :end

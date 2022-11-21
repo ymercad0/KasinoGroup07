@@ -5,12 +5,12 @@
     <configuration>
         <name>Debug</name>
         <outputs>
-            <file>$PROJ_DIR$\asm.s43</file>
-            <file>$TOOLKIT_DIR$\inc\msp430fr6989.h</file>
-            <file>$PROJ_DIR$\Debug\Obj\asm.r43</file>
             <file>$PROJ_DIR$\Debug\Exe\KasinoGroup#07.d43</file>
             <file>$TOOLKIT_DIR$\config\linker\multiplier32.xcl</file>
+            <file>$PROJ_DIR$\Debug\Obj\asm.r43</file>
+            <file>$PROJ_DIR$\asm.s43</file>
             <file>$TOOLKIT_DIR$\inc\msp430.h</file>
+            <file>$TOOLKIT_DIR$\inc\msp430fr6989.h</file>
             <file>$TOOLKIT_DIR$\config\linker\lnk430fr6989.xcl</file>
             <file>$PROJ_DIR$\Debug\List\KasinoGroup#07.map</file>
         </outputs>
@@ -19,24 +19,9 @@
             <outputs>
                 <tool>
                     <name>XLINK</name>
-                    <file> 3 7</file>
+                    <file> 0 7</file>
                 </tool>
             </outputs>
-        </file>
-        <file>
-            <name>$PROJ_DIR$\asm.s43</name>
-            <outputs>
-                <tool>
-                    <name>A430</name>
-                    <file> 2</file>
-                </tool>
-            </outputs>
-            <inputs>
-                <tool>
-                    <name>A430</name>
-                    <file> 5 1</file>
-                </tool>
-            </inputs>
         </file>
         <file>
             <name>$PROJ_DIR$\Debug\Exe\KasinoGroup#07.d43</name>
@@ -49,7 +34,22 @@
             <inputs>
                 <tool>
                     <name>XLINK</name>
-                    <file> 6 4 2</file>
+                    <file> 6 1 2</file>
+                </tool>
+            </inputs>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\asm.s43</name>
+            <outputs>
+                <tool>
+                    <name>A430</name>
+                    <file> 2</file>
+                </tool>
+            </outputs>
+            <inputs>
+                <tool>
+                    <name>A430</name>
+                    <file> 4 5</file>
                 </tool>
             </inputs>
         </file>
