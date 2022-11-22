@@ -61,7 +61,7 @@
         <Counter1>0000000000000000000000000000000000000000000000000000000000000000</Counter1>
     </EEM_Cycle_Counter_1>
     <DebugChecksum>
-        <Checksum>1828043166</Checksum>
+        <Checksum>3318288818</Checksum>
     </DebugChecksum>
     <CallStack>
         <ShowArgs>0</ShowArgs>
@@ -86,6 +86,11 @@
         <LoggingEnabled>_ 0</LoggingEnabled>
         <LogFile>_ ""</LogFile>
     </TermIOLog>
+    <LogFile>
+        <LoggingEnabled>_ 0</LoggingEnabled>
+        <LogFile>_ ""</LogFile>
+        <Category>_ 0</Category>
+    </LogFile>
     <PowerProbe>
         <Frequency>10000</Frequency>
         <Probe0>Current</Probe0>
@@ -95,13 +100,9 @@
         <Probe2>Energy</Probe2>
         <ProbeSetup2>4 1 1 10 0 0</ProbeSetup2>
     </PowerProbe>
-    <LogFile>
-        <LoggingEnabled>_ 0</LoggingEnabled>
-        <LogFile>_ ""</LogFile>
-        <Category>_ 0</Category>
-    </LogFile>
     <Breakpoints>
-        <Count>0</Count>
+        <Bp0>_ "STD_CODE" "Memory:0x60a4" 0 0 0 0 "" 0 ""</Bp0>
+        <Count>1</Count>
     </Breakpoints>
     <FET>
         <Clock_mode>46</Clock_mode>
@@ -126,7 +127,8 @@
         <File_name />
     </Memory_Dump>
     <Aliases>
-        <Count>0</Count>
+        <A0>_ "C:\Users\Xavier Roman\Documents\GitHub\KasinoGroup07\asm.s43" "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\asm.s43"</A0>
+        <Count>1</Count>
         <SuppressDialog>0</SuppressDialog>
     </Aliases>
 </settings>

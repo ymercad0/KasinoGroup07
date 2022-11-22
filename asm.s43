@@ -486,7 +486,7 @@ SUB_playerSelectionScreen:
         add R4, R4 ; dealing with an array of words, double R4
         mov NAMES(R4), R15 ; display the player name at the correct index
         pop R4
-        call    #SUB_displayCharacterArray
+        call #SUB_displayCharacterArray
         ret
 
 ; ===== Player Selection Screen Page Iterator =====
@@ -500,19 +500,18 @@ SUB_playerSelectionScreen:
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/19/22-11/21/22 =====
 SUB_updatePlayerScreen:
-        cmp     #6, R4
-        jeq     resetPlayerIterator
-        inc     R4
-        jmp     updateSelection
+        cmp  #6, R4
+        jeq  resetPlayerIterator
+        inc  R4
+        jmp  updateSelection
 
 resetPlayerIterator:
-        clr     R4
-        jmp     updateSelection
+        clr  R4
+        jmp  updateSelection
         
 updateSelection:
         mov #2, &LCDCMEMCTL ; Screen is later updated after the ISR processes
                             ; the button presses.
-        
         ret
         
 ; ===== General subroutines. =====
