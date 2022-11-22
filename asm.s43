@@ -593,7 +593,7 @@ SUB_enableTimer:
 ; ===== Posconditions: Stalls the program for a bit while inputs are processed.=====
 ; ======== Author: Yariel Mercado ========
 ; ======== Date: 11/21/22 ========
-delay:
+SUB_delay:
         push.w R10 ; store original value
         mov #0xFFFF, R10  
         jmp loop
@@ -660,15 +660,15 @@ ISR_PORT1:
         jmp     PORT1_ISR_END  
         
 S1Success: ; S1 or S2 have been succesfully pressed
-        call #delay                   ; Helps process input
+        call  #SUB_delay                   ; Helps process input
         bic.b #00000110B, &P1IFG      ; Clear interrupt flags
-        call #SUB_S1ButtonHandler
+        call  #SUB_S1ButtonHandler
         jmp PORT1_ISR_END
         
 S2Success:
-        call #delay                   ; Helps process input
+        call  #SUB_delay                   ; Helps process input
         bic.b #00000110B, &P1IFG      ; Clear interrupt flags
-        call #SUB_S2ButtonHandler
+        call  #SUB_S2ButtonHandler
         jmp PORT1_ISR_END
 
 PORT1_ISR_END:
