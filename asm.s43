@@ -56,15 +56,31 @@ PLAYER db 15, 11, 0, 24, 4, 17
 NO_HIGH_SCORE db 23, 23, 23, 23, 23, 23
 ;         F  R   A  M 
 FRAM   db 5, 17, 0, 12, 36, 36
-
+;         L   U   I  S
+LUIS   db 11, 20, 8, 18, 36, 36
+;         A  N   T   H  O   N
+ANTHON db 0, 13, 19, 7, 14, 13
+;         Y   A  R   I  E  L
+YARIEL db 24, 0, 17, 8, 4, 11
+;         N   I  C  O   L   E
+NICOLE db 13, 8, 2, 14, 11, 4
+;         D  R   A  C  I  R
+DRACIR db 3, 17, 0, 2, 8, 17
+;         U   I  M   E  R   F
+UIMERF db 20, 8, 12, 4, 17, 5
+;         O   R   A  V   A  N
+ORAVAN db 14, 17, 0, 21, 0, 13
+; List of names for player selection screen
+NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
 ; current program loop. This is done to differentiate from registers used for
 ; indices, checks, or iterations.  
 ;
 ; ==== Registers ==== 
-; R4: Stores the current screen page for the Record screens
+; R4: Stores the current screen page for *any* pages with screens
 ; R10: Stores what state to render. Each state is defined by a constant.
+; R12: Stores the selected name by the player.
 ; R13: Keeps track of the desired elapsed time (in seconds).
 ; R14: Increases each time the timer interrupt is called. 
 ; R15: Stores the starting address of the array containing the indices 
@@ -74,10 +90,12 @@ FRAM   db 5, 17, 0, 12, 36, 36
 ; (Each state is stored in R10)
 ; 0: Title Screen
 ; 1: Records
-; 2: Player Selection
-; 3: Test Mode
-; 4: Pro Mode
-; 5: Scores
+; 2: "Player" Screen
+; 3: Player Selection
+; 4: Test/Pro Selection Screen
+; 5: Pro Mode
+; 6: Test Mode
+; 7: Results
 
 ; ==== FRAM Memory ====
 ; FRAM Array: 0x4400-0x4405
@@ -166,7 +184,7 @@ main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/17/22 =====
 SUB_initializeValues:
-        mov #0, R4 ; controls the Record screens
+        mov #0, R4 ; controls screens or page indices
         mov #0, R10 ; Start on the title screen
         mov #0, R13 ; Don't need to keep track of time initially 
         mov #0, R14 ; 0 timer counts 
@@ -224,22 +242,27 @@ endFRAMSetup:
         ret
 
 ; ===== Game State Managers =====
+
 ; ===== Button Game State Manager Subroutine =====
 ; ===== Objective: Controls *button* sensitive game states. =====
 ; ===== Preconditions: Must be called from the PORT1 ISR. =====
 ; ===== 
 ; Postconditions: Executes the corresponding state based on the value of R10.
 ; =====
-; ===== Author: Yariel Mercado =====
+; ===== Author: Yariel Mercado, Nicole Roman =====
 ; ===== Date: 11/17/22 =====
 SUB_buttonStateManager: 
         cmp #0, R10
         jeq SUB_titleScreen
         cmp #1, R10
         jeq SUB_recordScreen
+        cmp #2, R10
+        jeq SUB_playerScreen
+        cmp #3, R10
+        jeq SUB_playerSelectionScreen
         ret
        
-; ===== Timer State Manager Subroutines =====
+; ===== Timer State Manager Subroutine =====
 ; ===== Objective: Controls *time* sensitive game states or actions. =====
 ; ===== Preconditions: Must be called from the TIMER ISR. =====
 ; ===== 
@@ -253,6 +276,86 @@ SUB_timerStateManager:
         jeq SUB_updateRecordScreen
         ret
         
+; ===== Button Press Subroutines =====
+; ===== 
+; Objective: Executes the necessary commands based on what buttons the user 
+;            pressed. 
+; =====
+; ===== 
+; Preconditions: Must be called from either of the ISRs after a *succesful*
+;                button press.
+; =====
+; ===== 
+; Postconditions: Jumps to the corresponding state transition based on the
+;                 current game state.
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/17/22 =====
+SUB_S1ButtonHandler:
+        ; on the title screen, transitions to Record
+        cmp #0, R10 
+        jeq SUB_recordStateTransition 
+        ; on the "Player" screen, transitions to Player Select
+        cmp #2, R10 
+        jeq SUB_playerSelectionStateTransition 
+        ; Cycle through the names on the player select screen
+        cmp #3, R10 
+        jeq SUB_updatePlayerScreen
+        ret
+        
+SUB_S2ButtonHandler:
+        ; Quits the record screen
+        cmp #1, R10 
+        jeq SUB_playerScreenStateTransition
+        ; Quits the player selection screen
+        cmp #3, R10 
+        jeq SUB_modeSelectionTransition
+        ret
+        
+ ; ===== Transition Subroutines =====
+; ===== 
+; Objective: Transitions to a different state based on both button presses as
+;            well as the current state.
+; =====
+; ===== Preconditions: Must be called from either of the ISRs. =====
+; ===== 
+; Postconditions: Increments the register to the next transition. State 
+;                 transitions are handled by the state managers.
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/18/22 =====
+SUB_recordStateTransition:      
+        inc R10             ; R10 == 1 (the Record Scores display)
+        mov #16, R13        ; Set transitions to every 2 seconds
+        call #SUB_enableTimer ; Enable timer
+        mov #2, &LCDCMEMCTL ; clear screen before going to next state
+        ret
+        
+SUB_playerScreenStateTransition:
+        inc R10                ; R10 == 2 (the "Player" screen)
+        call #SUB_disableTimer ; Not needed for player select
+        mov #2, &LCDCMEMCTL 
+        ret
+        
+SUB_playerSelectionStateTransition:
+        inc R10                ; R10 == 3 (the Player Select screen)
+        mov #0, R4             ; Keep track of the pages in the player select
+                               ; screen
+        mov #2, &LCDCMEMCTL 
+        ret
+
+SUB_modeSelectionTransition:
+        push.w R4
+        add R4, R4             ; Note: NAMES is an array of words
+        mov NAMES(R4), R12     ; Store the selected name in R12
+        pop R4
+        ; R10 == 4 (the Test/Pro selection screen)
+        inc R10                
+        mov #2, &LCDCMEMCTL 
+        ret
+ 
+; ===== States Execution =====
+
 ; ===== Title screen display subroutine =====
 ; ===== 
 ; Objective: Displays the title screen and remains here until the user presses
@@ -276,7 +379,7 @@ SUB_titleScreen:
 ; Objective: Loops around the various Record screens based on R4's value.
 ; =====
 ; ===== 
-; Preconditions: R4 must be 0 and the screen must be cleared.
+; Preconditions: The screen must be cleared.
 ; =====
 ; ===== 
 ; Postconditions: Draws the various record screens onto the LCD. R4 is 
@@ -361,7 +464,59 @@ updateScreen:
         mov #2, &LCDCMEMCTL ; clear screen before drawing a new record screen
         call #SUB_recordScreen  
         ret
+     
+; ===== Player Selection Screen Subroutines =====
+; ===== 
+; Objective: Loops around the names of possible players based on the value of R4. 
+; =====
+; =====  Preconditions: R4 must be within the range of 0-8. =====
+; ===== 
+; Postconditions: Draws the various player names onto the LCD and saves the 
+;                 selected option in R12.
+; =====
+; ===== Author: Nicole Roman, Yariel Mercado =====
+; ===== Date: 11/19/22-11/21/22 =====
+SUB_playerScreen:
+        mov  #PLAYER, R15
+        call #SUB_displayCharacterArray
+        ret
+
+SUB_playerSelectionScreen:
+        push.w R4
+        add R4, R4 ; dealing with an array of words, double R4
+        mov NAMES(R4), R15 ; display the player name at the correct index
+        pop R4
+        call    #SUB_displayCharacterArray
+        ret
+
+; ===== Player Selection Screen Page Iterator =====
+; ===== 
+; Objective: Manage the value of R4 to draw the appropriate player name.  
+; =====
+; =====  Preconditions: The screen must be cleared. =====
+; ===== 
+; Postconditions: Sets R4 to the correct value on the player selection screen.
+; =====
+; ===== Author: Yariel Mercado =====
+; ===== Date: 11/19/22-11/21/22 =====
+SUB_updatePlayerScreen:
+        cmp     #6, R4
+        jeq     resetPlayerIterator
+        inc     R4
+        jmp     updateSelection
+
+resetPlayerIterator:
+        clr     R4
+        jmp     updateSelection
         
+updateSelection:
+        mov #2, &LCDCMEMCTL ; Screen is later updated after the ISR processes
+                            ; the button presses.
+        
+        ret
+        
+; ===== General subroutines. =====
+
 ; ===== General LCD display subroutines. =====
 ; ===== 
 ; Objective: Given an array of numbers, displays the characters at those 
@@ -433,7 +588,25 @@ SUB_enableTimer:
                              ; disabling the timer.
         ret
 
+; ===== Delay subroutines. =====
+; ===== Objective: Decrements from a large value to stall for time. =====
+; ===== Preconditions: Must be called after an interrupt or button press. =====
+; ===== Posconditions: Stalls the program for a bit while inputs are processed.=====
+; ======== Author: Yariel Mercado ========
+; ======== Date: 11/21/22 ========
+delay:
+        push.w R10 ; store original value
+        mov #0xFFFF, R10  
+        jmp loop
+        
+loop:
+        dec R10
+        jnz loop
+        pop R10 
+        ret ; returns to whatever subroutine the delay was called from
+
 ; ===== Interupt subroutines. =====
+
 ; ===== Timer Interrupt Subroutine =====
 ; ===== 
 ; Objective: Control the program's time sensitive events.
@@ -482,35 +655,23 @@ ISR_PORT1:
         ; Check S2
         bit.b   #00000100B, &P1IFG
         jnz     S2Success
-        jmp     PORT1_ISR_END  ; Didn't recieve S1/2 interrupts
+        ; Didn't recieve S1/2 interrupts
+        bic.b #00000110B, &P1IFG      ; Clear interrupt flags
+        jmp     PORT1_ISR_END  
         
 S1Success: ; S1 or S2 have been succesfully pressed
-        cmp #0, R10 ; on the title screen, transitions to Record
-        jeq recordStateTransition ; transitions by incrementing by 1
+        call #delay                   ; Helps process input
+        bic.b #00000110B, &P1IFG      ; Clear interrupt flags
+        call #SUB_S1ButtonHandler
         jmp PORT1_ISR_END
         
 S2Success:
-        cmp #1, R10 ; quits the record screen
-        jeq playerStateTransition
-        jmp PORT1_ISR_END
-
-; These transitions must be done from within the P1 ISR subroutine since
-; different buttons activate different states.
-recordStateTransition:      
-        inc R10             ; R10 == 1 (the Record Scores display)
-        mov #16, R13        ; Set transitions to every 2 seconds
-        call #SUB_enableTimer ; Enable timer
-        mov #2, &LCDCMEMCTL ; clear screen before going to next state
-        jmp PORT1_ISR_END
-        
-playerStateTransition:
-        inc R10             ; R10 == 2 (the Player Select screen)
-        call #SUB_disableTimer ; Not needed for player select
-        mov #2, &LCDCMEMCTL 
+        call #delay                   ; Helps process input
+        bic.b #00000110B, &P1IFG      ; Clear interrupt flags
+        call #SUB_S2ButtonHandler
         jmp PORT1_ISR_END
 
 PORT1_ISR_END:
-        bic.b #00000110B, &P1IFG      ; Clear interrupt flags
         call #SUB_buttonStateManager  ; Manage program state
         reti
         END
