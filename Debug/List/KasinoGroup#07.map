@@ -2,7 +2,7 @@
 #                                                                              #
 #      IAR Universal Linker V6.6.2.104                                         #
 #                                                                              #
-#           Link time     =  21/Nov/2022  23:15:57                             #
+#           Link time     =  21/Nov/2022  23:21:01                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
 #                            ebug\List\KasinoGroup#07.map"                     #
@@ -12,7 +12,7 @@
 #                            UBROF version 10.0.6                              #
 #                            Using library modules for C-SPY (-rt)             #
 #           Command line  =  -f                                                #
-#                            C:\Users\YARIEL~1\AppData\Local\Temp\EW69BF.tmp   #
+#                            C:\Users\YARIEL~1\AppData\Local\Temp\EWC72.tmp    #
 #                            ("C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\ #
 #                            Debug\Obj\asm.r43"                                #
 #                            -o                                                #

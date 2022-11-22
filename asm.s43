@@ -72,6 +72,7 @@ UIMERF db 20, 8, 12, 4, 17, 5
 ORAVAN db 14, 17, 0, 21, 0, 13
 ; List of names for player selection screen
 NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
+
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
 ; current program loop. This is done to differentiate from registers used for
@@ -319,11 +320,11 @@ SUB_S2ButtonHandler:
 ; =====
 ; ===== Preconditions: Must be called from either of the ISRs. =====
 ; ===== 
-; Postconditions: Increments the register to the next transition. State 
-;                 transitions are handled by the state managers.
+; Postconditions: Increments the register to the next transition and sets 
+;                 the register values to the next state's requirements. 
 ; =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/18/22 =====
+; ===== Date: 11/18/22-11/22/22 =====
 SUB_recordStateTransition:      
         inc R10             ; R10 == 1 (the Record Scores display)
         mov #16, R13        ; Set transitions to every 2 seconds
@@ -345,12 +346,11 @@ SUB_playerSelectionStateTransition:
         ret
 
 SUB_modeSelectionTransition:
-        push.w R4
         add R4, R4             ; Note: NAMES is an array of words
         mov NAMES(R4), R12     ; Store the selected name in R12
-        pop R4
-        ; R10 == 4 (the Test/Pro selection screen)
+                               ; R10 == 4 (the Test/Pro selection screen)
         inc R10                
+        clr R4                 ; used as a paginator for PRO/TEST select
         mov #2, &LCDCMEMCTL 
         ret
  
@@ -369,7 +369,7 @@ SUB_modeSelectionTransition:
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22-11/17/22 =====
 SUB_titleScreen:
-        call #SUB_disableTimer ; not needed for the timer screen
+        call #SUB_disableTimer ; not needed for the title screen
         mov #TITLE, R15
         call #SUB_displayCharacterArray
         ret
@@ -474,7 +474,7 @@ updateScreen:
 ; Postconditions: Draws the various player names onto the LCD and saves the 
 ;                 selected option in R12.
 ; =====
-; ===== Author: Nicole Roman, Yariel Mercado =====
+; ===== Author: Yariel Mercado, Nicole Roman =====
 ; ===== Date: 11/19/22-11/21/22 =====
 SUB_playerScreen:
         mov  #PLAYER, R15
@@ -498,7 +498,7 @@ SUB_playerSelectionScreen:
 ; Postconditions: Sets R4 to the correct value on the player selection screen.
 ; =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/19/22-11/21/22 =====
+; ===== Date: 11/21/22 =====
 SUB_updatePlayerScreen:
         cmp  #6, R4
         jeq  resetPlayerIterator
@@ -625,6 +625,7 @@ ISR_TIMER:
         inc R14 ; keeps track of the timer's ticks
         cmp R13, R14  ; is the current number of cycles == desired #cycles
         jne TIMER_ISR_END ; not equal. End and continue to increase time
+
         ; Desired number of seconds have elapsed
         call #SUB_timerStateManager
         clr R14 ; reset the count
@@ -646,7 +647,7 @@ TIMER_ISR_END:
 ;                 based on the current state.
 ; =====
 ; ===== Author: Yariel Mercado =====
-; ===== Date: 11/15/22-11/17/22 =====
+; ===== Date: 11/15/22-11/21/22 =====
 ISR_PORT1:      
         ; Check S1
         bit.b   #00000010B, &P1IFG ; Test P1IFG to detect interrupt from S1    
