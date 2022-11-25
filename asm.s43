@@ -50,6 +50,8 @@ TITLE  db 10, 0, 18, 8, 13, 14
 RECORD db 17, 4, 2, 14, 17, 3
 ;         T   E  S   T
 TEST   db 19, 4, 18, 19, 36, 36
+;         P   R   O
+PRO    db 15, 17, 14, 36, 36, 36
 ;         P   L   A  Y   E  R
 PLAYER db 15, 11, 0, 24, 4, 17
 ;                 X   X   X   X   X   X
@@ -70,8 +72,21 @@ DRACIR db 3, 17, 0, 2, 8, 17
 UIMERF db 20, 8, 12, 4, 17, 5
 ;         O   R   A  V   A  N
 ORAVAN db 14, 17, 0, 21, 0, 13
+;         0   0   0   0   0   0
+ZEROS  db 14, 14, 14, 14, 14, 14
+;         P   E  R   D  I  O
+PERDIO db 15, 4, 17, 3, 8, 14
+;         G  A  N   O
+GANO   db 6, 0, 13, 14, 36, 36
+;         S       C  L   R
+S2CLR  db 18, 36, 2, 11, 17, 36
 ; List of names for player selection screen
 NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
+; List of modes for mode selection screen
+MODES  dw TEST, PRO
+;List of digits for Test and Pro modes
+;          0   1   2   3   4   5   6   7   8   9
+DIGITS db 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
@@ -93,10 +108,12 @@ NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
 ; 1: Records
 ; 2: "Player" Screen
 ; 3: Player Selection
-; 4: Test/Pro Selection Screen
-; 5: Pro Mode
-; 6: Test Mode
-; 7: Results
+; 4: Test/Pro Selection Screen ;;;;;;;;;;;;;;; activate timer for modes
+; 5: Test Mode
+; 6: Pro Mode
+; 7: "PERDIO" screen ;;;;;;;;;;;;;;; deactivate timer here for S2CLR
+; 8: "GANO" screen   ;;;;;;;;;;;;;;; deactivate timer here for S2CLR
+; 9: "S2CLR" screen
 
 ; ==== FRAM Memory ====
 ; FRAM Array: 0x4400-0x4405
@@ -232,9 +249,9 @@ initializeFRAM: ; set XXXXXX for top scorer and 0 for their score
         ; Store a dummy higher scorer
         mov #NO_HIGH_SCORE, &0x4406
         ; Store 0 as highest score so far 
-        mov.b #0, &0x440C
+        mov.b #1, &0x440C
         ; Test score
-        mov.b #0, &0x440D
+        mov.b #2, &0x440D
         jmp endFRAMSetup
 
 endFRAMSetup:
@@ -250,8 +267,8 @@ endFRAMSetup:
 ; ===== 
 ; Postconditions: Executes the corresponding state based on the value of R10.
 ; =====
-; ===== Author: Yariel Mercado, Nicole Roman =====
-; ===== Date: 11/17/22 =====
+; ===== Author: Yariel Mercado, Nicole Roman, Anthony Mendez =====
+; ===== Date: 11/17/22 - 11/24/22 =====
 SUB_buttonStateManager: 
         cmp #0, R10
         jeq SUB_titleScreen
@@ -261,6 +278,18 @@ SUB_buttonStateManager:
         jeq SUB_playerScreen
         cmp #3, R10
         jeq SUB_playerSelectionScreen
+        cmp #4, R10
+        jeq SUB_modeSelectionScreen
+        cmp #5, R10
+        jeq SUB_testModeScreen
+        cmp #6, R10
+        jeq SUB_proModeScreen
+        cmp #7, R10
+        jeq SUB_perdioScreen 
+        cmp #8, R10
+        jeq SUB_ganoScreen
+        cmp #9, R10
+        jeq SUB_S2CLRscreen       
         ret
        
 ; ===== Timer State Manager Subroutine =====
@@ -270,11 +299,17 @@ SUB_buttonStateManager:
 ; Postconditions: Executes the corresponding state based on the current state
 ;                 (R10). 
 ; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/18/22 =====
+; ===== Author: Yariel Mercado, Anthony Mendez =====
+; ===== Date: 11/18/22 - 11/24/22 =====
 SUB_timerStateManager:
         cmp #1, R10 ; currently in the record screen
         jeq SUB_updateRecordScreen
+        ;cmp #5, R10 ; currently in the test mode screen
+        ;jeq SUB_updateDigit
+        cmp #7, R10 ; currently in the 'PERDIO' screen
+        jeq SUB_S2CLRscreenTransitionFromPerdio
+        cmp #8, R10 ; currently in the 'GANO' screen
+        jeq SUB_S2CLRscreenTransitionFromGano
         ret
         
 ; ===== Button Press Subroutines =====
@@ -290,8 +325,8 @@ SUB_timerStateManager:
 ; Postconditions: Jumps to the corresponding state transition based on the
 ;                 current game state.
 ; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/17/22 =====
+; ===== Author: Yariel Mercado, Anthony Mendez =====
+; ===== Date: 11/17/22 - 11/24/22 =====
 SUB_S1ButtonHandler:
         ; on the title screen, transitions to Record
         cmp #0, R10 
@@ -302,6 +337,14 @@ SUB_S1ButtonHandler:
         ; Cycle through the names on the player select screen
         cmp #3, R10 
         jeq SUB_updatePlayerScreen
+        ; Cycle through the modes on the mode selection screen
+        cmp #4, R10
+        jeq SUB_updateModeScreen
+        cmp #5, R10
+        jeq SUB_ganoScreenStateTransition
+        ; Quits S2CLR screen and returns to title screen
+        cmp #9, R10
+        jeq SUB_titleScreenTransition
         ret
         
 SUB_S2ButtonHandler:
@@ -311,6 +354,13 @@ SUB_S2ButtonHandler:
         ; Quits the player selection screen
         cmp #3, R10 
         jeq SUB_modeSelectionTransition
+        ; Quits the mode selection screen
+        cmp #4, R10
+        jeq SUB_testOrProModeTransition
+        cmp #5, R10
+        jeq SUB_perdioScreenStateTransition
+        cmp #9, R10
+        jeq SUB_clrRecords
         ret
         
  ; ===== Transition Subroutines =====
@@ -323,8 +373,8 @@ SUB_S2ButtonHandler:
 ; Postconditions: Increments the register to the next transition and sets 
 ;                 the register values to the next state's requirements. 
 ; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/18/22-11/22/22 =====
+; ===== Author: Yariel Mercado, Anthony Mendez =====
+; ===== Date: 11/18/22 - 11/24/22 =====
 SUB_recordStateTransition:      
         inc R10             ; R10 == 1 (the Record Scores display)
         mov #16, R13        ; Set transitions to every 2 seconds
@@ -334,7 +384,7 @@ SUB_recordStateTransition:
         
 SUB_playerScreenStateTransition:
         inc R10                ; R10 == 2 (the "Player" screen)
-        call #SUB_disableTimer ; Not needed for player select
+        call #SUB_disableTimer ; Not needed for player select and mode select
         mov #2, &LCDCMEMCTL 
         ret
         
@@ -354,6 +404,52 @@ SUB_modeSelectionTransition:
         mov #2, &LCDCMEMCTL 
         ret
  
+ SUB_testOrProModeTransition:
+        inc R4                 ; increase the paginator num by 1 to match state
+        add R4, R10            ; add 1 if R11 == 0, add 2 if R11 == 1
+                               ; R10 == 5 (TEST mode)
+                               ; R10 == 6 (PRO  mode)
+        clr R4
+        mov #16, R13           ; For TEST, digits transitions every 2 seconds
+        call #SUB_enableTimer  ; Enable timer for the modes
+        mov #2, &LCDCMEMCTL 
+        ret
+ 
+SUB_perdioScreenStateTransition:
+        call #SUB_disableTimer
+        add #2, R10
+        mov #40, R13           ; timer set to 5 seconds
+        call #SUB_enableTimer
+        mov #2, &LCDCMEMCTL 
+        ret
+
+SUB_ganoScreenStateTransition:
+        call #SUB_disableTimer
+        add #3, R10
+        mov #40, R13           ; timer set to 5 seconds
+        call #SUB_enableTimer
+        mov #2, &LCDCMEMCTL 
+        ret
+
+SUB_S2CLRscreenTransitionFromPerdio:
+        add #2, R10
+        call #SUB_disableTimer ; Not needed for S2CLR screen
+        mov #2, &LCDCMEMCTL 
+        call #SUB_S2CLRscreen
+        ret
+        
+SUB_S2CLRscreenTransitionFromGano:
+        inc R10
+        call #SUB_disableTimer ; Not needed for S2CLR screen
+        mov #2, &LCDCMEMCTL 
+        call #SUB_S2CLRscreen
+        ret
+
+SUB_titleScreenTransition:
+        clr R10
+        mov #2, &LCDCMEMCTL 
+        ret
+        
 ; ===== States Execution =====
 
 ; ===== Title screen display subroutine =====
@@ -513,7 +609,158 @@ updateSelection:
         mov #2, &LCDCMEMCTL ; Screen is later updated after the ISR processes
                             ; the button presses.
         ret
+
+; ===== Test & Pro modes Selection Screen Subroutines =====
+; ===== 
+; Objective: Loops around the two modes with S1.1 and confirm with S1.2. 
+; =====
+; =====  Preconditions: R4 must be within the range of 0-1. =====
+; ===== 
+; Postconditions: Saves in register R11 the value of the selected option (mode).
+;                 Saves 0 (zero) if selected mode is TEST, 1 (one) if PRO.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/12/22 - 11/24/22 =====
+SUB_modeSelectionScreen:
+        push.w R4
+        inc R4
+        mov MODES(R4), R15; display the mode name at the correct index
+        pop R4
+        call #SUB_displayCharacterArray
+        ret
+
+; ===== Test & Pro modes Selection Screen Page Iterator Subroutines =====
+; ===== 
+; Objective: Verify R4's value in order to draw the corresponding mode. 
+; =====
+; =====  Preconditions: The screen must be cleared =====
+; ===== 
+; Postconditions: Sets R4 to the correct value on the TEST & PRO 
+;                 selection screen.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/12/22 - 11/24/22 =====
+SUB_updateModeScreen:
+        cmp #1, R4
+        jeq resetModeIterator
+        inc R4
+        jmp updateModeSelection
+
+resetModeIterator:
+        clr  R4
+        jmp  updateModeSelection
+
+updateModeSelection:
+        mov #2, &LCDCMEMCTL ; Screen is later updated after the ISR processes
+                            ; the button presses.
+        ret
+
+; ===== Test Mode Subroutines =====
+; ===== 
+; Objective: From left to right, iterate through numbers from zero to 9.
+;            each digit appears on screen for 2 seconds, select digit with S1.
+;            If digit > 9, player loses; also, if any digit from index 1 to 5
+;            is not equal to digit index 0, player also loses.
+;            if by the end all numbers are equal, player wins 
+; =====
+; =====  Preconditions: R11 must be equal to 0 (zero) =====
+; ===== 
+; Postconditions: store the Test score in R##
+;                 display "PERDIO" if player loses
+;                 display "GANO" if player wins
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/12/22 - 11/24/22 =====
+SUB_testModeScreen:
+        mov  #ZEROS, R15
+        call #SUB_displayCharacterArray
+        ret
+
+; ===== Pro Mode Subroutines =====
+; ===== 
+; Objective: From left to right, iterate through numbers from zero to 9.
+;            each digit appears on screen for less seconds
+;            as player selects digits with S1.
+;            If digit > 9, player loses; also, if any digit from index 1 to 5
+;            is not equal to digit index 0, player also loses.
+;            if by the end all numbers are equal, player wins  
+; =====
+; =====  Preconditions: R11 must be equal to 1 (one) =====
+; ===== 
+; Postconditions: store the Pro score in R##, and player in R##
+;                 display "PERDIO" if player loses
+;                 display "GANO" if player wins    
+; =====
+; =====
+; ===== Author:     =====
+; ===== Date:  =====
+SUB_proModeScreen:
+        mov  #ZEROS, R15
+        call #SUB_displayCharacterArray
+        ret
         
+; ===== 'PERDIO' Screen Subroutines =====
+; ===== 
+; Objective: Displaying 'PERDIO' for 5 seconds 
+; =====
+; =====
+; Preconditions: As soon as a digit from the second onwards is not equal to 
+;                the first digit selected. Also if any digit goes beyond 9
+; =====
+; =====
+; Postconditions: Move to 'S2CLR' screen after 5 seconds
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/24/22 =====
+SUB_perdioScreen:
+        mov  #PERDIO, R15
+        call #SUB_displayCharacterArray
+        ret
+
+; ===== 'GANO' Screen Subroutines =====
+; ===== 
+; Objective: Displaying 'GANO' for 5 seconds 
+; =====
+; =====
+; Preconditions: 
+; =====
+; =====
+; Postconditions: Move to 'S2CLR' screen after 5 seconds
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/24/22 =====
+SUB_ganoScreen:
+       mov  #GANO, R15
+       call #SUB_displayCharacterArray
+       ret
+
+; ===== S2CLR Screen Subroutines =====
+; ===== 
+; Objective: Displaying 'S2CLR'. If S1.1 is pressed, return to title screen.
+;            If S1.2 is pressed, TEST and PRO records turn to zero
+; =====
+; =====
+; Preconditions: This screen must be drawn 5 seconds after "PERDIO" or "GANO"
+; =====
+; =====
+; Postconditions: If s1.2 is pressed, 0x440C (Top PRO Score), 
+;                 and 0x440D (Top TEST Score) turn to zero. 
+;                 If S1.2 is pressed, return to title screen
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/23/22 =====
+SUB_S2CLRscreen:
+       mov  #S2CLR, R15
+       call #SUB_displayCharacterArray
+       mov.b #0xDB, &0xA25
+       mov.b #0x00, &0xA26
+       ret
+       
+SUB_clrRecords:
+       mov.b #0, &0x440C ;sets top PRO  Score to zero
+       mov.b #0, &0x440D ;sets top TEST Score to zero
+       ret
+
 ; ===== General subroutines. =====
 
 ; ===== General LCD display subroutines. =====
