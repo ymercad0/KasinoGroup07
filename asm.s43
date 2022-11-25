@@ -84,9 +84,6 @@ S2CLR  db 18, 36, 2, 11, 17, 36
 NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
 ; List of modes for mode selection screen
 MODES  dw TEST, PRO
-;List of digits for Test and Pro modes
-;          0   1   2   3   4   5   6   7   8   9
-DIGITS db 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
@@ -111,11 +108,11 @@ DIGITS db 26, 27, 28, 29, 30, 31, 32, 33, 34, 35
 ; 1: Records
 ; 2: "Player" Screen
 ; 3: Player Selection
-; 4: Test/Pro Selection Screen ;;;;;;;;;;;;;;; activate timer for modes
+; 4: Test/Pro Selection Screen
 ; 5: Test Mode
 ; 6: Pro Mode
-; 7: "PERDIO" screen ;;;;;;;;;;;;;;; deactivate timer here for S2CLR
-; 8: "GANO" screen   ;;;;;;;;;;;;;;; deactivate timer here for S2CLR
+; 7: "PERDIO" screen
+; 8: "GANO" screen
 ; 9: "S2CLR" screen
 
 ; ==== FRAM Memory ====
@@ -308,7 +305,7 @@ SUB_timerStateManager:
         cmp #1, R10 ; currently in the record screen
         jeq SUB_updateRecordScreen
         cmp #5, R10 ; currently in the test mode screen
-        jeq SUB_updateDigit
+        jeq SUB_updateTestDigit
         cmp #7, R10 ; currently in the 'PERDIO' screen
         jeq SUB_S2CLRscreenTransitionFromPerdio
         cmp #8, R10 ; currently in the 'GANO' screen
@@ -345,7 +342,7 @@ SUB_S1ButtonHandler:
         jeq SUB_updateModeScreen
         ; Move to next segment and compare selection to first digit if R4 > 0
         cmp #5, R10
-        jeq SUB_selectionAndNextSegment
+        jeq SUB_selectionAndNextTestSegment
         ; Quits S2CLR screen and returns to title screen
         cmp #9, R10
         jeq SUB_titleScreenTransition
@@ -361,6 +358,7 @@ SUB_S2ButtonHandler:
         ; Quits the mode selection screen
         cmp #4, R10
         jeq SUB_testOrProModeTransition
+        ; sets TEST and PRO scores to zero
         cmp #9, R10
         jeq SUB_clrRecords
         ret
@@ -408,7 +406,7 @@ SUB_modeSelectionTransition:
 
 SUB_testOrProModeTransition:
         inc R4                 ; increase the paginator num by 1 to match state
-        add R4, R10            ; add 1 if R4 == 0, add 2 if R4 == 1
+        add R4, R10            ; this way, adds 1 if R4 == 0, add 2 if R4 == 1.
                                ; R10 == 5 (TEST mode)
                                ; R10 == 6 (PRO  mode)
         clr R4                 ; current segment on the screen (0-5) for modes
@@ -423,9 +421,9 @@ SUB_testOrProModeTransition:
         ret
 
 SUB_testModeTransition:
-        mov #4, R13           ; For TEST, digits transitions every 2 seconds
+        mov #16, R13            ; For TEST, digits transitions every 2 seconds
         call #SUB_enableTimer  ; Enable timer for the mode
-        mov #ZEROS, R15
+        mov #ZEROS, R15        ; Display zeros on the test mode screen.        
         call #SUB_displayCharacterArray
         ret
 
@@ -491,8 +489,8 @@ SUB_S2CLRscreenTransitionFromGano:
         ret
 
 SUB_titleScreenTransition:
-        clr R4
-        clr R10
+        clr R4                 ; Reset R4 for the record screen
+        clr R10                ; Reset R10 to go to the title screen
         mov #2, &LCDCMEMCTL 
         ret
         
@@ -711,80 +709,95 @@ updateModeSelection:
 ; =====
 ; =====  Preconditions: R10 must be equal to 5 (five) =====
 ; ===== 
-; Postconditions: store the Test score in R##
+; Postconditions: store the Test score in 0x440D
 ;                 display "PERDIO" if player loses
 ;                 display "GANO" if player wins
 ; =====
 ; ===== Author: Anthony Mendez =====
 ; ===== Date: 11/22/22 - 11/25/22 =====
 SUB_testModeScreen:
-        cmp #0, R4
+        cmp #0, R4               ; Segment #1
         jeq drawFirstTestDigit
-        cmp #1, R4
+        cmp #1, R4               ; Segment #2
         jeq drawSecondTestDigit
-        cmp #2, R4
+        cmp #2, R4               ; Segment #3
         jeq drawThirdTestDigit
-        cmp #3, R4
+        cmp #3, R4               ; Segment #4
         jeq drawFourthTestDigit
-        cmp #4, R4
+        cmp #4, R4               ; Segment #5
         jeq drawFifthTestDigit
-        cmp #5, R4
+        cmp #5, R4               ; Segment #6
         jeq drawSixthTestDigit
-        jmp endDigitUpdate
+        jmp endTestDigitUpdate
         
-SUB_selectionAndNextSegment:
-        cmp #0, R4
-        jeq storeFirstDigit
-        cmp R8, R9 
-        jne SUB_perdioScreenStateTransitionFromTest ; Not equal to first digit
+SUB_selectionAndNextTestSegment:
+        cmp #0, R4                 ; if just selected first digit
+        jeq storeFirstDigit        ; go store it
+        cmp R8, R9                 ; compare selected number with first digit
+        jne SUB_perdioScreenStateTransitionFromTest ; Not equal: go to 'PERDIO'
                                    ; if equal do the following
-        inc R4                     ; move to next segment
-        clr R8                     ; reset index
+        inc R4                     ; inc segment index to move to next segment
+        clr R8                     ; reset index for the number (starts at 0)
         inc R11                    ; increase score
         cmp #6, R11                ; if score == 6, player wins
-        jeq SUB_ganoScreenStateTransitionFromTest
+        jeq SUB_ganoScreenStateTransitionFromTest ; got 6 points: go to 'GANO'
         ret
         
 storeFirstDigit:
-        mov R8, R9
-        inc R4
-        clr R8
+        mov R8, R9                 ; save in R9 the first digit's value (R8)
+        inc R4                     ; inc segment index to move to next segment
+        clr R8                     ; reset index for the number (starts at 0)
         ret
 
 drawFirstTestDigit:
         mov.b DIGIT_H(R8), &0xA29
         mov.b DIGIT_L(R8), &0xA2A
-        jmp endDigitUpdate
+        jmp endTestDigitUpdate
 
 drawSecondTestDigit:
         mov.b DIGIT_H(R8), &0xA25
         mov.b DIGIT_L(R8), &0xA26
-        jmp endDigitUpdate
+        jmp endTestDigitUpdate
 
 drawThirdTestDigit:
         mov.b DIGIT_H(R8), &0xA23
         mov.b DIGIT_L(R8), &0xA24
-        jmp endDigitUpdate
+        jmp endTestDigitUpdate
 
 drawFourthTestDigit:
         mov.b DIGIT_H(R8), &0xA32
         mov.b DIGIT_L(R8), &0xA33
-        jmp endDigitUpdate
+        jmp endTestDigitUpdate
 
 drawFifthTestDigit:
         mov.b DIGIT_H(R8), &0xA2E
         mov.b DIGIT_L(R8), &0xA2F
-        jmp endDigitUpdate
+        jmp endTestDigitUpdate
 
 drawSixthTestDigit:
         mov.b DIGIT_H(R8), &0xA27
         mov.b DIGIT_L(R8), &0xA28
-        jmp endDigitUpdate
+        jmp endTestDigitUpdate
 
-endDigitUpdate:
+endTestDigitUpdate:
+        clr R14   ; timer count to zero to allow each digit to show for 2 secs
         ret
         
-SUB_updateDigit:
+; ===== Update Digit subroutines =====
+; ===== 
+; Objective: Updates the display based on the timer, current segment, and 
+;            index digit for test mode. 
+; =====
+; ===== 
+; Preconditions: R5 has to be less or equal to 9 (nine).  
+; =====
+; ===== 
+; Postconditions: Updates the next digit in the corresponding segment.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/25/22 =====
+        
+SUB_updateTestDigit:
         cmp #9, R8 ; if the index goes beyond 9, the player loses
         jeq SUB_perdioScreenStateTransitionFromTest
         inc R8
@@ -805,7 +818,7 @@ updateTestSegment:
 ; =====
 ; =====  Preconditions: R10 must be equal to 6 (six) =====
 ; ===== 
-; Postconditions: store the Pro score in R##, and player in R##
+; Postconditions: store the Pro score in 0x440C, and player in 0x4406
 ;                 display "PERDIO" if player loses
 ;                 display "GANO" if player wins    
 ; =====
