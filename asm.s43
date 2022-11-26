@@ -431,7 +431,7 @@ SUB_testModeTransition:
         ret
 
 SUB_proModeTransition:
-        mov #16, R13           ; For PRO, first digit transitions every 2 secs
+        mov #16, R13           ; For PRO, first 2 digits transition every 2 secs
         call #SUB_enableTimer  ; Enable timer for the mode
         ret
 
@@ -736,18 +736,7 @@ updateModeSelection:
 ; ===== Author: Anthony Mendez =====
 ; ===== Date: 11/22/22 - 11/25/22 =====
 SUB_testModeScreen:
-        cmp #0, R4               ; Segment #1
-        jeq drawFirstTestDigit
-        cmp #1, R4               ; Segment #2
-        jeq drawSecondTestDigit
-        cmp #2, R4               ; Segment #3
-        jeq drawThirdTestDigit
-        cmp #3, R4               ; Segment #4
-        jeq drawFourthTestDigit
-        cmp #4, R4               ; Segment #5
-        jeq drawFifthTestDigit
-        cmp #5, R4               ; Segment #6
-        jeq drawSixthTestDigit
+        call #SUB_displaySegmentData
         jmp endTestDigitUpdate
         
 SUB_selectionTest:
@@ -768,36 +757,6 @@ storeFirstDigit:
         inc R4                     ; inc segment index to move to next segment
         clr R8                     ; reset index for the number (starts at 0)
         ret
-
-drawFirstTestDigit:
-        mov.b DIGIT_H(R8), &0xA29
-        mov.b DIGIT_L(R8), &0xA2A
-        jmp endTestDigitUpdate
-
-drawSecondTestDigit:
-        mov.b DIGIT_H(R8), &0xA25
-        mov.b DIGIT_L(R8), &0xA26
-        jmp endTestDigitUpdate
-
-drawThirdTestDigit:
-        mov.b DIGIT_H(R8), &0xA23
-        mov.b DIGIT_L(R8), &0xA24
-        jmp endTestDigitUpdate
-
-drawFourthTestDigit:
-        mov.b DIGIT_H(R8), &0xA32
-        mov.b DIGIT_L(R8), &0xA33
-        jmp endTestDigitUpdate
-
-drawFifthTestDigit:
-        mov.b DIGIT_H(R8), &0xA2E
-        mov.b DIGIT_L(R8), &0xA2F
-        jmp endTestDigitUpdate
-
-drawSixthTestDigit:
-        mov.b DIGIT_H(R8), &0xA27
-        mov.b DIGIT_L(R8), &0xA28
-        jmp endTestDigitUpdate
 
 endTestDigitUpdate:
         clr R14   ; timer count to zero to allow each digit to show for 2 secs
@@ -846,22 +805,15 @@ updateTestSegment:
 ; ===== Author: Luis D. Gonzalez, Anthony Mendez =====
 ; ===== Date: 11/25/2022 =====
 SUB_proModeScreen:
-        cmp #0, R4               ; Segment #1
-        jeq drawFirstProDigit
-        cmp #1, R4               ; Segment #2
-        jeq drawSecondProDigit
+        call #SUB_displaySegmentData
         cmp #2, R4               ; Segment #3
-        mov #8, R13              ; Decrease timer speed to 1 second
-        jeq drawThirdProDigit
+        jeq timerThirdProDigit
         cmp #3, R4               ; Segment #4
-        mov #4, R13              ; Decrease timer speed to 0.5 seconds
-        jeq drawFourthProDigit
+        jeq timerFourthProDigit
         cmp #4, R4               ; Segment #5
-        mov #2, R13              ; Decrease timer speed to 0.25 seconds
-        jeq drawFifthProDigit
+        jeq timerFifthProDigit
         cmp #5, R4               ; Segment #6
-        mov #1, R13              ; Decrease timer speed to 0.125 seconds
-        jeq drawSixthProDigit
+        jeq timerSixthProDigit
         jmp endProDigitUpdate
         
 SUB_selectionPro:
@@ -883,34 +835,20 @@ storeFirstDigitPro:
         clr R8                     ; reset index for the number (starts at 0)
         ret
 
-drawFirstProDigit:
-        mov.b DIGIT_H(R8), &0xA29
-        mov.b DIGIT_L(R8), &0xA2A
+timerThirdProDigit:
+        mov #8, R13              ; Decrease timer speed to 1 second
         jmp endProDigitUpdate
 
-drawSecondProDigit:
-        mov.b DIGIT_H(R8), &0xA25
-        mov.b DIGIT_L(R8), &0xA26
+timerFourthProDigit:
+        mov #4, R13              ; Decrease timer speed to 0.5 seconds
         jmp endProDigitUpdate
 
-drawThirdProDigit:
-        mov.b DIGIT_H(R8), &0xA23
-        mov.b DIGIT_L(R8), &0xA24
+timerFifthProDigit:
+        mov #2, R13              ; Decrease timer speed to 0.25 seconds        
         jmp endProDigitUpdate
 
-drawFourthProDigit:
-        mov.b DIGIT_H(R8), &0xA32
-        mov.b DIGIT_L(R8), &0xA33
-        jmp endProDigitUpdate
-
-drawFifthProDigit:
-        mov.b DIGIT_H(R8), &0xA2E
-        mov.b DIGIT_L(R8), &0xA2F
-        jmp endProDigitUpdate
-
-drawSixthProDigit:
-        mov.b DIGIT_H(R8), &0xA27
-        mov.b DIGIT_L(R8), &0xA28
+timerSixthProDigit:
+        mov #1, R13              ; Decrease timer speed to 0.125 seconds        
         jmp endProDigitUpdate
 
 endProDigitUpdate:
@@ -1053,6 +991,30 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R6
         pop R5
         ret  
+
+; ===== Segment display subroutines. =====
+; ===== 
+; Objective: Given the index, displays the characters at the corresponding  
+;            (TEST or PRO) mode segment on the LCD. 
+; =====
+; ===== 
+; Preconditions: Each integer, representing the character to be drawn, should
+;                go from 0-9, that number is stored in R8. R4 should store the
+;                number of the segment to be drawn on.
+; =====
+; ===== 
+; Postconditions: Draws the indicated numbers onto the segment.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/26/2022 =====
+SUB_displaySegmentData:
+        push.w R7 ; Value for current LCD memory offset (same index as R6)
+        mov.b LCD_OFFSETS(R4), R7 ; where in LCD memory to draw (offset)
+        ; increment first to safely skip writing to the screen when EMPTY
+        mov.b DIGIT_H(R8), 0x0A20(R7)
+        mov.b DIGIT_L(R8), 0x0A20+1(R7)
+        pop R7 ; restore non-permanent modification registers (check comments)
+        ret
 
 ; ===== Timer management subroutines =====
 ; ===== 
