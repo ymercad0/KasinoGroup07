@@ -737,7 +737,8 @@ updateModeSelection:
 ; ===== Date: 11/22/22 - 11/25/22 =====
 SUB_testModeScreen:
         call #SUB_displaySegmentData
-        jmp endTestDigitUpdate
+        clr R14 ; set timer count to zero to allow each digit to show for 2 secs
+        ret
         
 SUB_selectionTest:
         cmp #0, R4                 ; if just selected first digit
@@ -756,10 +757,6 @@ storeFirstDigit:
         mov R8, R9                 ; save in R9 the first digit's value (R8)
         inc R4                     ; inc segment index to move to next segment
         clr R8                     ; reset index for the number (starts at 0)
-        ret
-
-endTestDigitUpdate:
-        clr R14   ; timer count to zero to allow each digit to show for 2 secs
         ret
         
 ; ===== Update Digit subroutines =====
@@ -852,7 +849,7 @@ timerSixthProDigit:
         jmp endProDigitUpdate
 
 endProDigitUpdate:
-        clr R14   ; timer count to zero to allow each digit to show for 2 secs
+        clr R14 ; set timer count to zero to allow each digit to show for X secs
         ret
         
 ; ===== Update Digit subroutines =====
