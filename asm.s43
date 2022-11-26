@@ -28,7 +28,7 @@ CHAR_H db 0xEF, 0xF1, 0x9C, 0xF0, 0x9F, 0x8E, 0xBD, 0x6F, 0x90, 0x78, 0x0E, 0x1C
 CHAR_L db 0x00, 0x50, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x22, 0x00, 0xB0, 0x82, 0x00, 0x00, 0x02, 0x02, 0x00, 0x50, 0x00, 0x28, 0x0A, 0xAA, 0xB0, 0x28   
 ; Indices: 0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19    20    21    22    23    24    25    
 
-; ==== Numbers 0-9. Memory from previous array. ====
+; ==== Numbers 0-9 ====
 ;           0     1     2     3     4     5     6     7     8     9    EMPTY
 DIGIT_H db 0xFC, 0x60, 0xDB, 0xF3, 0x67, 0xB7, 0xBF, 0x80, 0xFF, 0xF7, 0x00
 DIGIT_L db 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
@@ -44,7 +44,7 @@ LCD_OFFSETS db 9, 5, 3, 18, 14, 7
 
 ; ==== Program Screen Arrays ====
 ; Must be of length 6
-;        K   A  S   I   N  O  
+;         K   A  S   I   N  O  
 TITLE  db 10, 0, 18, 8, 13, 14
 ;         R   E  C  O   R   D
 RECORD db 17, 4, 2, 14, 17, 3
@@ -205,9 +205,10 @@ SUB_initializeValues:
         mov #0, R4 ; controls screens or page indices
         mov #0, R10 ; Start on the title screen
         mov #0, R13 ; Don't need to keep track of time initially 
-        mov #0, R14 ; 0 timer counts 
+        mov #0, R14 ; 0 timer counts  
+        call #SUB_disableTimer ; not needed for the title screen
         call #SUB_FRAMSetup   ; Setup FRAM 
-        call #SUB_titleScreen ; Display the title screen
+        call #SUB_titleScreen ; Display the title screen   
         ret 
 
 ; ===== FRAM initializer subroutines =====
@@ -529,7 +530,6 @@ SUB_titleScreenTransition:
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22-11/17/22 =====
 SUB_titleScreen:
-        call #SUB_disableTimer ; not needed for the title screen
         mov #TITLE, R15
         call #SUB_displayCharacterArray
         ret
@@ -994,11 +994,15 @@ SUB_ganoScreen:
 SUB_S2CLRscreen:
        mov  #S2CLR, R15
        call #SUB_displayCharacterArray
-       mov.b #0xDB, &0xA25 ; number 2 high
-       mov.b #0x00, &0xA26 ; number 2 low
+       push.w R4
+       mov #2, R4
+       mov.b DIGIT_H(R4), &0xA25 ; number 2 high
+       mov.b DIGIT_L(R4), &0xA26 ; number 2 low
+       pop R4
        ret
        
 SUB_clrRecords:
+       mov #NO_HIGH_SCORE, &0x4406 ; resets high scorer
        mov.b #0, &0x440C   ;sets top PRO  Score to zero
        mov.b #0, &0x440D   ;sets top TEST Score to zero
        ret
@@ -1149,13 +1153,13 @@ ISR_PORT1:
         jmp     PORT1_ISR_END  
         
 S1Success: ; S1 or S2 have been succesfully pressed
-        call  #SUB_delay                   ; Helps process input
+        call  #SUB_delay              ; Helps process one press at a time
         bic.b #00000110B, &P1IFG      ; Clear interrupt flags
         call  #SUB_S1ButtonHandler
         jmp PORT1_ISR_END
         
 S2Success:
-        call  #SUB_delay                   ; Helps process input
+        call  #SUB_delay              ; Helps process input one press at a time
         bic.b #00000110B, &P1IFG      ; Clear interrupt flags
         call  #SUB_S2ButtonHandler
         jmp PORT1_ISR_END
