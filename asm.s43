@@ -50,8 +50,6 @@ TITLE  db 10, 0, 18, 8, 13, 14
 RECORD db 17, 4, 2, 14, 17, 3
 ;         T   E  S   T
 TEST   db 19, 4, 18, 19, 36, 36
-;         P   R   O
-PRO    db 15, 17, 14, 36, 36, 36
 ;         M   O   D  E      T
 MODE_T db 12, 14, 3, 4, 36, 19
 ;         M   O   D  E      P
@@ -76,8 +74,6 @@ DRACIR db 3, 17, 0, 2, 8, 17
 UIMERF db 20, 8, 12, 4, 17, 5
 ;         O   R   A  V   A  N
 ORAVAN db 14, 17, 0, 21, 0, 13
-;         0   0   0   0   0   0
-ZEROS  db 14, 14, 14, 14, 14, 14
 ;         P   E  R   D  I  O
 PERDIO db 15, 4, 17, 3, 8, 14
 ;         G  A  N   O
@@ -313,9 +309,9 @@ SUB_timerStateManager:
         cmp #6, R10 ; currently in the pro mode screen
         jeq SUB_updateProDigit
         cmp #7, R10 ; currently in the 'PERDIO' screen
-        jeq SUB_S2CLRscreenTransitionFromPerdio
+        jeq SUB_s2clrTransitionPerdio
         cmp #8, R10 ; currently in the 'GANO' screen
-        jeq SUB_S2CLRscreenTransitionFromGano
+        jeq SUB_s2clrTransitionGano
         ret
         
 ; ===== Button Press Subroutines =====
@@ -348,10 +344,10 @@ SUB_S1ButtonHandler:
         jeq SUB_updateModeScreen
         ; Move to next segment and compare selection to first digit if R4 > 0
         cmp #5, R10
-        jeq SUB_selectionAndNextTestSegment
+        jeq SUB_selectionTest
         ; Move to next segment and compare selection to first digit if R4 > 0
         cmp #6, R10
-        jeq SUB_selectionAndNextProSegment
+        jeq SUB_selectionPro
         ; Quits S2CLR screen and returns to title screen
         cmp #9, R10
         jeq SUB_titleScreenTransition
@@ -432,19 +428,14 @@ SUB_testOrProModeTransition:
 SUB_testModeTransition:
         mov #16, R13            ; For TEST, digits transitions every 2 seconds
         call #SUB_enableTimer  ; Enable timer for the mode
-        ;mov #ZEROS, R15        ; Display zeros on the test mode screen.        
-        ;call #SUB_displayCharacterArray
         ret
 
 SUB_proModeTransition:
         mov #16, R13           ; For PRO, first digit transitions every 2 secs
         call #SUB_enableTimer  ; Enable timer for the mode
-        ;mov #ZEROS, R15       ; Display zeros on the pro mode screen
-        ;call #SUB_displayCharacterArray
         ret
 
-SUB_perdioScreenStateTransitionFromTest:
-        mov.b R11, &0x440D      ;sets TEST Score to value of R11
+SUB_perdioTransitionTest:
         clr R8                 ; Reset the digit list index 
         clr R9                 ; Reset the first digit
         add #2, R10            ; From TEST: R10 = 5 + 2 -> R10 = 7
@@ -452,13 +443,17 @@ SUB_perdioScreenStateTransitionFromTest:
         call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_perdioScreen ; Display screen
-        ;cmp &0x440D, R11       ; Check for new High Schore
-        ;jge newRecordTest
-        ;jmp endFinalProScreen
+        cmp &0x440D, R11       ; Check for new High Score
+        jge newRecordTest      ; Jump if R11 >= previous High Score
+        ret
+        
+newRecordTest:
+        mov.b R11, &0x440D      ; replaces FRAM TEST Score to value of R11
         ret
 
-SUB_ganoScreenStateTransitionFromTest:
-        mov.b R11, &0x440D      ;sets TEST Score to value of R11
+SUB_ganoTransitionTest:
+                               ; No need for comparison if player wins
+        mov.b R11, &0x440D     ; replaces FRAM TEST Score to value of R11
         clr R8                 ; Reset the digit list index 
         clr R9                 ; Reset the first digit
         add #3, R10            ; From TEST: R10 = 5 + 3 -> R10 == 8
@@ -466,21 +461,9 @@ SUB_ganoScreenStateTransitionFromTest:
         call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_ganoScreen   ; Display screen
-        ;cmp &0x440D, R11       ; Check for new High Schore
-        ;jge newRecordTest
-        ;jmp endFinalTestScreen
-        ret
-        
-newRecordTest:
-        mov.b R11, &0x440D      ;updates FRAM PRO Score to value of R11
-        jmp endFinalTestScreen
-        
-endFinalTestScreen:
         ret
         
 SUB_perdioTransitionPro:
-        ;mov.b R11, &0x440C      ;updates FRAM PRO Score to value of R11
-        ;mov.b R12, &0x4406      ;updates FRAM PRO Name to value of R12
         clr R8                 ; Reset the digit list index 
         clr R9                 ; Reset the first digit
         add #1, R10            ; From PRO: R10 = 6 + 1 -> R10 = 7
@@ -488,14 +471,19 @@ SUB_perdioTransitionPro:
         call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_perdioScreen
-        cmp &0x440C, R11
-        jge newRecordPro
-        jmp endFinalProScreen
+        cmp &0x440C, R11       ; Check for new High Score
+        jge newRecordPro       ; Jump if R11 >= previous High Score
+        ret
+  
+newRecordPro:
+        mov.b R11, &0x440C     ;updates FRAM PRO Score to value of R11
+        mov.b R12, &0x4406     ;updates FRAM PRO Name to value of R12
         ret
         
 SUB_ganoTransitionPro:
-        ;mov.b R11, &0x440C      ;updates FRAM PRO Score to value of R11
-        ;mov.b R12, &0x4406      ;updates FRAM PRO Name to value of R12
+                               ; No need for comparison if player wins
+        mov.b R11, &0x440C     ;updates FRAM PRO Score to value of R11
+        mov.b R12, &0x4406     ;updates FRAM PRO Name to value of R12
         clr R8                 ; Reset the digit list index 
         clr R9                 ; Reset the first digit
         add #2, R10            ; From PRO: R10 = 6 + 2 -> R10 == 8
@@ -503,28 +491,17 @@ SUB_ganoTransitionPro:
         call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_ganoScreen
-        cmp &0x440C, R11       ; Check for new High Schore
-        jge newRecordPro
-        jmp endFinalProScreen
-        ret
-
-newRecordPro:
-        mov.b R11, &0x440C      ;updates FRAM PRO Score to value of R11
-        mov.b R12, &0x4406      ;updates FRAM PRO Name to value of R12
-        jmp endFinalProScreen
-        
-endFinalProScreen:
         ret
         
-SUB_S2CLRscreenTransitionFromPerdio:
+SUB_s2clrTransitionPerdio:
         add #2, R10            ; From Perdio: R10 = 7 + 2 -> R10 == 9
         call #SUB_disableTimer ; Not needed for S2CLR screen
         mov #2, &LCDCMEMCTL 
         call #SUB_S2CLRscreen
         ret
         
-SUB_S2CLRscreenTransitionFromGano:
-        inc R10
+SUB_s2clrTransitionGano:
+        inc R10                ; From gano: R10 = 8 + 1 -> R10 == 9
         call #SUB_disableTimer ; Not needed for S2CLR screen
         mov #2, &LCDCMEMCTL 
         call #SUB_S2CLRscreen
@@ -532,6 +509,7 @@ SUB_S2CLRscreenTransitionFromGano:
 
 SUB_titleScreenTransition:
         clr R4                 ; Reset R4 for the record screen
+        clr R11                ; Reset score
         clr R10                ; Reset R10 to go to the title screen
         mov #2, &LCDCMEMCTL 
         ret
@@ -772,17 +750,17 @@ SUB_testModeScreen:
         jeq drawSixthTestDigit
         jmp endTestDigitUpdate
         
-SUB_selectionAndNextTestSegment:
+SUB_selectionTest:
         cmp #0, R4                 ; if just selected first digit
         jeq storeFirstDigit        ; go store it
         cmp R8, R9                 ; compare selected number with first digit
-        jne SUB_perdioScreenStateTransitionFromTest ; Not equal: go to 'PERDIO'
+        jne SUB_perdioTransitionTest ; Not equal: go to 'PERDIO'
                                    ; if equal do the following
         inc R4                     ; inc segment index to move to next segment
         clr R8                     ; reset index for the number (starts at 0)
         inc R11                    ; increase score
         cmp #6, R11                ; if score == 6, player wins
-        jeq SUB_ganoScreenStateTransitionFromTest ; got 6 points: go to 'GANO'
+        jeq SUB_ganoTransitionTest ; got 6 points: go to 'GANO'
         ret
         
 storeFirstDigit:
@@ -841,7 +819,7 @@ endTestDigitUpdate:
         
 SUB_updateTestDigit:
         cmp #9, R8 ; if the index goes beyond 9, the player loses
-        jeq SUB_perdioScreenStateTransitionFromTest
+        jeq SUB_perdioTransitionTest
         inc R8
         jmp updateTestSegment
         
@@ -886,7 +864,7 @@ SUB_proModeScreen:
         jeq drawSixthProDigit
         jmp endProDigitUpdate
         
-SUB_selectionAndNextProSegment:
+SUB_selectionPro:
         cmp #0, R4                 ; if just selected first digit
         jeq storeFirstDigitPro     ; go store it
         cmp R8, R9                 ; compare selected number with first digit
