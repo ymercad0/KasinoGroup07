@@ -84,6 +84,8 @@ S2CLR  db 18, 28, 2, 11, 17, 36
 NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
 ; List of modes for mode selection screen
 MODES  dw MODE_T, MODE_P
+; List of speeds for each segment in PRO mode (divide by 8 to get time in secs)
+SPEED  db 16, 16, 8, 4, 2, 1
 
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
@@ -803,15 +805,9 @@ updateTestSegment:
 ; ===== Date: 11/25/2022 =====
 SUB_proModeScreen:
         call #SUB_displaySegmentData
-        cmp #2, R4               ; Segment #3
-        jeq timerThirdProDigit
-        cmp #3, R4               ; Segment #4
-        jeq timerFourthProDigit
-        cmp #4, R4               ; Segment #5
-        jeq timerFifthProDigit
-        cmp #5, R4               ; Segment #6
-        jeq timerSixthProDigit
-        jmp endProDigitUpdate
+        mov.b SPEED(R4), R13 ; Decrease timer speed for the value in segment R4
+        clr R14 ; set timer count to zero to allow each digit to show for X secs
+        ret
         
 SUB_selectionPro:
         cmp #0, R4                 ; if just selected first digit
@@ -830,26 +826,6 @@ storeFirstDigitPro:
         mov R8, R9                 ; save in R9 the first digit's value (R8)
         inc R4                     ; inc segment index to move to next segment
         clr R8                     ; reset index for the number (starts at 0)
-        ret
-
-timerThirdProDigit:
-        mov #8, R13              ; Decrease timer speed to 1 second
-        jmp endProDigitUpdate
-
-timerFourthProDigit:
-        mov #4, R13              ; Decrease timer speed to 0.5 seconds
-        jmp endProDigitUpdate
-
-timerFifthProDigit:
-        mov #2, R13              ; Decrease timer speed to 0.25 seconds        
-        jmp endProDigitUpdate
-
-timerSixthProDigit:
-        mov #1, R13              ; Decrease timer speed to 0.125 seconds        
-        jmp endProDigitUpdate
-
-endProDigitUpdate:
-        clr R14 ; set timer count to zero to allow each digit to show for X secs
         ret
         
 ; ===== Update Digit subroutines =====
@@ -1004,7 +980,7 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
 ; ===== Author: Anthony Mendez =====
 ; ===== Date: 11/26/2022 =====
 SUB_displaySegmentData:
-        push.w R7 ; Value for current LCD memory offset (same index as R6)
+        push.w R7 ; Value for current LCD memory offset (same index as R4)
         mov.b LCD_OFFSETS(R4), R7 ; where in LCD memory to draw (offset)
         ; increment first to safely skip writing to the screen when EMPTY
         mov.b DIGIT_H(R8), 0x0A20(R7)
