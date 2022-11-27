@@ -44,48 +44,48 @@ LCD_OFFSETS db 9, 5, 3, 18, 14, 7
 
 ; ==== Program Screen Arrays ====
 ; Must be of length 6
-;         K   A  S   I   N  O  
-TITLE  db 10, 0, 18, 8, 13, 14
-;         R   E  C  O   R   D
-RECORD db 17, 4, 2, 14, 17, 3
-;         T   E  S   T
-TEST   db 19, 4, 18, 19, 36, 36
-;         M   O   D  E      T
-MODE_T db 12, 14, 3, 4, 36, 19
-;         M   O   D  E      P
-MODE_P db 12, 14, 3, 4, 36, 15
-;         P   L   A  Y   E  R
-PLAYER db 15, 11, 0, 24, 4, 17
-;                 X   X   X   X   X   X
-NO_HIGH_SCORE db 23, 23, 23, 23, 23, 23
-;         F  R   A  M 
-FRAM   db 5, 17, 0, 12, 36, 36
-;         L   U   I  S
-LUIS   db 11, 20, 8, 18, 36, 36
-;         A  N   T   H  O   N
-ANTHON db 0, 13, 19, 7, 14, 13
-;         Y   A  R   I  E  L
-YARIEL db 24, 0, 17, 8, 4, 11
-;         N   I  C  O   L   E
-NICOLE db 13, 8, 2, 14, 11, 4
-;         D  R   A  C  I  R
-DRACIR db 3, 17, 0, 2, 8, 17
-;         U   I  M   E  R   F
-UIMERF db 20, 8, 12, 4, 17, 5
-;         O   R   A  V   A  N
-ORAVAN db 14, 17, 0, 21, 0, 13
-;         P   E  R   D  I  O
-PERDIO db 15, 4, 17, 3, 8, 14
-;         G  A  N   O
-GANO   db 6, 0, 13, 14, 36, 36
-;         S   2   C  L   R
-S2CLR  db 18, 28, 2, 11, 17, 36
+;          K   A  S   I   N  O  
+TITLE   db 10, 0, 18, 8, 13, 14
+;          R   E  C  O   R   D
+RECORD  db 17, 4, 2, 14, 17, 3
+;          T   E  S   T
+TEST    db 19, 4, 18, 19, 36, 36
+;          M   O   D  E      T
+MODE_T  db 12, 14, 3, 4, 36, 19
+;          M   O   D  E      P
+MODE_P  db 12, 14, 3, 4, 36, 15
+;          P   L   A  Y   E  R
+PLAYER  db 15, 11, 0, 24, 4, 17
+;          X   X   X   X   X   X
+NO_NAME db 23, 23, 23, 23, 23, 23
+;          F  R   A  M 
+FRAM    db 5, 17, 0, 12, 36, 36
+;          L   U   I  S
+LUIS    db 11, 20, 8, 18, 36, 36
+;          A  N   T   H  O   N
+ANTHON  db 0, 13, 19, 7, 14, 13
+;          Y   A  R   I  E  L
+YARIEL  db 24, 0, 17, 8, 4, 11
+;          N   I  C  O   L   E
+NICOLE  db 13, 8, 2, 14, 11, 4
+;          D  R   A  C  I  R
+DRACIR  db 3, 17, 0, 2, 8, 17
+;          U   I  M   E  R   F
+UIMERF  db 20, 8, 12, 4, 17, 5
+;          O   R   A  V   A  N
+ORAVAN  db 14, 17, 0, 21, 0, 13
+;          P   E  R   D  I  O
+PERDIO  db 15, 4, 17, 3, 8, 14
+;          G  A  N   O
+GANO    db 6, 0, 13, 14, 36, 36
+;          S   2   C  L   R
+S2CLR   db 18, 28, 2, 11, 17, 36
 ; List of names for player selection screen
-NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
+NAMES   dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
 ; List of modes for mode selection screen
-MODES  dw MODE_T, MODE_P
+MODES   dw MODE_T, MODE_P
 ; List of speeds for each segment in PRO mode (divide by 8 to get time in secs)
-SPEED  db 16, 16, 8, 4, 2, 1
+SPEED   db 16, 16, 8, 4, 2, 1
 
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
@@ -204,10 +204,7 @@ main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/17/22 =====
 SUB_initializeValues:
-        mov #0, R4 ; controls screens or page indices
         mov #0, R10 ; Start on the title screen
-        mov #0, R13 ; Don't need to keep track of time initially 
-        mov #0, R14 ; 0 timer counts  
         call #SUB_disableTimer ; not needed for the title screen
         call #SUB_FRAMSetup   ; Setup FRAM 
         call #SUB_titleScreen ; Display the title screen   
@@ -250,7 +247,7 @@ initializeFRAM: ; set XXXXXX for top scorer and 0 for their score
         ; This certifies that our code has correctly accessed the FRAM locations.
         mov #FRAM, &0x4400 
         ; Store a dummy higher scorer
-        mov #NO_HIGH_SCORE, &0x4406
+        mov #NO_NAME, &0x4406
         ; Store 0 as highest score so far 
         mov.b #0, &0x440C
         ; Test score
@@ -384,6 +381,7 @@ SUB_S2ButtonHandler:
 ; ===== Author: Yariel Mercado, Anthony Mendez, Luis D. Gonzalez =====
 ; ===== Date: 11/18/22 - 11/25/22 =====
 SUB_recordStateTransition:      
+        mov #0, R4          ; controls screens or page indices
         inc R10             ; R10 == 1 (the Record Scores display)
         mov #16, R13        ; Set transitions to every 2 seconds
         call #SUB_enableTimer ; Enable timer
@@ -441,17 +439,11 @@ SUB_proModeTransition:
 SUB_perdioTransitionTest:
         clr R8                 ; Reset the digit list index 
         clr R9                 ; Reset the first digit
-        add #2, R10            ; From TEST: R10 = 5 + 2 -> R10 = 7
+        incd R10               ; From TEST: R10 = 5 + 2 -> R10 = 7
         mov #40, R13           ; Timer set to 5 seconds
-        call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_perdioScreen ; Display screen
-        cmp &0x440D, R11       ; Check for new High Score
-        jge newRecordTest      ; Jump if R11 >= previous High Score
-        ret
-        
-newRecordTest:
-        mov.b R11, &0x440D      ; replaces FRAM TEST Score to value of R11
+        call #SUB_updateTestScore
         ret
 
 SUB_ganoTransitionTest:
@@ -461,7 +453,6 @@ SUB_ganoTransitionTest:
         clr R9                 ; Reset the first digit
         add #3, R10            ; From TEST: R10 = 5 + 3 -> R10 == 8
         mov #40, R13           ; Timer set to 5 seconds
-        call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_ganoScreen   ; Display screen
         ret
@@ -471,33 +462,25 @@ SUB_perdioTransitionPro:
         clr R9                 ; Reset the first digit
         add #1, R10            ; From PRO: R10 = 6 + 1 -> R10 = 7
         mov #40, R13           ; Timer set to 5 seconds
-        call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_perdioScreen
-        cmp &0x440C, R11       ; Check for new High Score
-        jge newRecordPro       ; Jump if R11 >= previous High Score
-        ret
-  
-newRecordPro:
-        mov.b R11, &0x440C     ;updates FRAM PRO Score to value of R11
-        mov.b R12, &0x4406     ;updates FRAM PRO Name to value of R12
+        call #SUB_updateProScore
         ret
         
 SUB_ganoTransitionPro:
                                ; No need for comparison if player wins
-        mov.b R11, &0x440C     ;updates FRAM PRO Score to value of R11
-        mov.b R12, &0x4406     ;updates FRAM PRO Name to value of R12
+        mov.b R11, &0x440C     ; Updates FRAM PRO Score to value of R11
+        mov.b R12, &0x4406     ; Updates FRAM PRO Name to value of R12
         clr R8                 ; Reset the digit list index 
         clr R9                 ; Reset the first digit
-        add #2, R10            ; From PRO: R10 = 6 + 2 -> R10 == 8
+        incd R10               ; From PRO: R10 = 6 + 2 -> R10 == 8
         mov #40, R13           ; Timer set to 5 seconds
-        call #SUB_enableTimer
         mov #2, &LCDCMEMCTL 
         call #SUB_ganoScreen
         ret
         
 SUB_s2clrTransitionPerdio:
-        add #2, R10            ; From Perdio: R10 = 7 + 2 -> R10 == 9
+        incd R10               ; From Perdio: R10 = 7 + 2 -> R10 == 9
         call #SUB_disableTimer ; Not needed for S2CLR screen
         mov #2, &LCDCMEMCTL 
         call #SUB_S2CLRscreen
@@ -636,7 +619,7 @@ updateScreen:
 ; Postconditions: Draws the various player names onto the LCD and saves the 
 ;                 selected option in R12.
 ; =====
-; ===== Author: Yariel Mercado, Nicole Roman =====
+; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/19/22-11/21/22 =====
 SUB_playerScreen:
         mov  #PLAYER, R15
@@ -760,6 +743,21 @@ storeFirstDigit:
         inc R4                     ; inc segment index to move to next segment
         clr R8                     ; reset index for the number (starts at 0)
         ret
+
+; Updates the top Test Mode record
+; TODO: Document
+SUB_updateTestScore:
+        cmp.b &0x440D, R11     ; Check for new High Score 
+        jge newRecordTest      ; Jump if R11 >= previous High Score
+        jmp endTestScoreUpdate
+  
+newRecordTest:
+        mov.b R11, &0x440D      ; replaces FRAM TEST Score to value of R11
+        jmp endTestScoreUpdate
+
+endTestScoreUpdate:
+        ret
+  
         
 ; ===== Update Digit subroutines =====
 ; ===== 
@@ -826,6 +824,21 @@ storeFirstDigitPro:
         mov R8, R9                 ; save in R9 the first digit's value (R8)
         inc R4                     ; inc segment index to move to next segment
         clr R8                     ; reset index for the number (starts at 0)
+        ret
+        
+; Update Pro Mode scores 
+; TODO: Document
+SUB_updateProScore:
+        cmp.b &0x440C, R11       ; Check for new High Score
+        jge newRecordPro       ; Jump if R11 >= previous High Score
+        jmp endProScoreUpdate
+        
+newRecordPro:
+        mov.b R11, &0x440C     ; 0updates FRAM PRO Score to value of R11
+        mov.b R12, &0x4406     ; updates FRAM PRO Name to value of R12
+        jmp endProScoreUpdate
+
+endProScoreUpdate:
         ret
         
 ; ===== Update Digit subroutines =====
@@ -908,7 +921,7 @@ SUB_S2CLRscreen:
        ret
        
 SUB_clrRecords:
-       mov #NO_HIGH_SCORE, &0x4406 ; resets high scorer
+       mov   #NO_NAME, &0x4406 ; resets high scorer
        mov.b #0, &0x440C   ;sets top PRO Score to zero
        mov.b #0, &0x440D   ;sets top TEST Score to zero
        ret
