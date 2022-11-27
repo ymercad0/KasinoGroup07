@@ -744,8 +744,15 @@ storeFirstDigit:
         clr R8                     ; reset index for the number (starts at 0)
         ret
 
-; Updates the top Test Mode record
-; TODO: Document
+; ===== Update Test Mode High Score subroutines =====
+; =====
+; Objective: Compares new score (stored on R11)with previous high score stored 
+; =====      on FRAM
+; =====
+; ===== Postconditions: If R11 is greater on equal to value of 0x440D on FRAM,
+; =====                 replace that value with the on stored on R11.
+; ===== Author: Yariel Mercado, Luis D. Gonzalez, Anthony Mendez =====
+; ===== Date: 11/25/2022 - 11/27/2022 =====
 SUB_updateTestScore:
         cmp.b &0x440D, R11     ; Check for new High Score 
         jge newRecordTest      ; Jump if R11 >= previous High Score
@@ -826,8 +833,17 @@ storeFirstDigitPro:
         clr R8                     ; reset index for the number (starts at 0)
         ret
         
-; Update Pro Mode scores 
-; TODO: Document
+; ===== Update Pro Mode High Score subroutines =====
+; =====
+; Objective: Compares new score (stored on R11)with previous high score stored 
+; =====      on FRAM
+; =====
+; ===== Postconditions: If R11 is greater on equal to value of 0x440C on FRAM,
+; =====                 replace that value with the on stored on R11, and
+; =====                 replace name stored on 0x4406 on FRAM with name of new
+; =====                 record holder (stored on R12). 
+; ===== Author: Yariel Mercado, Luis D. Gonzalez, Anthony Mendez =====
+; ===== Date: 11/25/2022 - 11/27/2022 =====
 SUB_updateProScore:
         cmp.b &0x440C, R11       ; Check for new High Score
         jge newRecordPro       ; Jump if R11 >= previous High Score
@@ -1111,4 +1127,3 @@ PORT1_ISR_END:
         call #SUB_buttonStateManager  ; Manage program state
         reti
         END
-        
