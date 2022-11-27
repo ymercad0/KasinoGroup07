@@ -21,18 +21,18 @@
 
 ; ======== Variable/array directives ========
 ; Each character on the screen is drawn via the indices present in the 
-; following arrays. 
-; ==== Letters A-Z ====
-;           A     B     C     D     E     F     G     H     I     J     K     L     M     N     O     P     Q     R     S     T     U     V     W     X     Y     Z  
-CHAR_H db 0xEF, 0xF1, 0x9C, 0xF0, 0x9F, 0x8E, 0xBD, 0x6F, 0x90, 0x78, 0x0E, 0x1C, 0x6C, 0x6C, 0xFC, 0xCF, 0xFC, 0xCF, 0xB7, 0x80, 0x7C, 0x0C, 0x6C, 0x00, 0x00, 0x90
-CHAR_L db 0x00, 0x50, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x22, 0x00, 0xB0, 0x82, 0x00, 0x00, 0x02, 0x02, 0x00, 0x50, 0x00, 0x28, 0x0A, 0xAA, 0xB0, 0x28   
-; Indices: 0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19    20    21    22    23    24    25    
-
-; ==== Numbers 0-9. Memory from previous array. ====
-;           0     1     2     3     4     5     6     7     8     9    EMPTY
+; following arrays. Define the high bytes then the low bytes in order to access
+; either array with just CHAR_H. 
+; ==== Letters A-Z & Numbers 0-9 ====
+; Chars:    A     B     C     D     E     F     G     H     I     J     K     L     M     N     O     P     Q     R     S     T     U     V     W     X     Y     Z  
+CHAR_H  db 0xEF, 0xF1, 0x9C, 0xF0, 0x9F, 0x8E, 0xBD, 0x6F, 0x90, 0x78, 0x0E, 0x1C, 0x6C, 0x6C, 0xFC, 0xCF, 0xFC, 0xCF, 0xB7, 0x80, 0x7C, 0x0C, 0x6C, 0x00, 0x00, 0x90
 DIGIT_H db 0xFC, 0x60, 0xDB, 0xF3, 0x67, 0xB7, 0xBF, 0x80, 0xFF, 0xF7, 0x00
+; Nums:     0     1     2     3     4     5     6     7     8     9    EMPTY
+
+; Indices:  0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15    16    17    18    19    20    21    22    23    24    25    
+CHAR_L  db 0x00, 0x50, 0x00, 0x50, 0x00, 0x00, 0x00, 0x00, 0x50, 0x00, 0x22, 0x00, 0xB0, 0x82, 0x00, 0x00, 0x02, 0x02, 0x00, 0x50, 0x00, 0x28, 0x0A, 0xAA, 0xB0, 0x28   
 DIGIT_L db 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
-; Indices:  26    27    28    29    30    31    32    33    34    35    36
+;           26    27    28    29    30    31    32    33    34    35    36
 
 ; ==== 
 ; LCD characters (in memory) are offset by values. Fills characters on 
@@ -40,38 +40,52 @@ DIGIT_L db 0x00, 0x20, 0x00, 0x00, 0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00
 ; memory address for the high byte. Offset by one to calculate the address 
 ; of the low byte.
 ; ====
-LCD_OFFSETS db 9, 5, 3, 18, 14, 7
+LCD_OFFSETS db 9, 5, 3, 18, 14, 7
 
 ; ==== Program Screen Arrays ====
 ; Must be of length 6
-;        K   A  S   I   N  O  
-TITLE  db 10, 0, 18, 8, 13, 14
-;         R   E  C  O   R   D
-RECORD db 17, 4, 2, 14, 17, 3
-;         T   E  S   T
-TEST   db 19, 4, 18, 19, 36, 36
-;         P   L   A  Y   E  R
-PLAYER db 15, 11, 0, 24, 4, 17
-;                 X   X   X   X   X   X
-NO_HIGH_SCORE db 23, 23, 23, 23, 23, 23
-;         F  R   A  M 
-FRAM   db 5, 17, 0, 12, 36, 36
-;         L   U   I  S
-LUIS   db 11, 20, 8, 18, 36, 36
-;         A  N   T   H  O   N
-ANTHON db 0, 13, 19, 7, 14, 13
-;         Y   A  R   I  E  L
-YARIEL db 24, 0, 17, 8, 4, 11
-;         N   I  C  O   L   E
-NICOLE db 13, 8, 2, 14, 11, 4
-;         D  R   A  C  I  R
-DRACIR db 3, 17, 0, 2, 8, 17
-;         U   I  M   E  R   F
-UIMERF db 20, 8, 12, 4, 17, 5
-;         O   R   A  V   A  N
-ORAVAN db 14, 17, 0, 21, 0, 13
+;          K   A  S   I   N  O  
+TITLE   db 10, 0, 18, 8, 13, 14
+;          R   E  C  O   R   D
+RECORD  db 17, 4, 2, 14, 17, 3
+;          T   E  S   T
+TEST    db 19, 4, 18, 19, 36, 36
+;          M   O   D  E      T
+MODE_T  db 12, 14, 3, 4, 36, 19
+;          M   O   D  E      P
+MODE_P  db 12, 14, 3, 4, 36, 15
+;          P   L   A  Y   E  R
+PLAYER  db 15, 11, 0, 24, 4, 17
+;          X   X   X   X   X   X
+NO_NAME db 23, 23, 23, 23, 23, 23
+;          F  R   A  M 
+FRAM    db 5, 17, 0, 12, 36, 36
+;          L   U   I  S
+LUIS    db 11, 20, 8, 18, 36, 36
+;          A  N   T   H  O   N
+ANTHON  db 0, 13, 19, 7, 14, 13
+;          Y   A  R   I  E  L
+YARIEL  db 24, 0, 17, 8, 4, 11
+;          N   I  C  O   L   E
+NICOLE  db 13, 8, 2, 14, 11, 4
+;          D  R   A  C  I  R
+DRACIR  db 3, 17, 0, 2, 8, 17
+;          U   I  M   E  R   F
+UIMERF  db 20, 8, 12, 4, 17, 5
+;          O   R   A  V   A  N
+ORAVAN  db 14, 17, 0, 21, 0, 13
+;          P   E  R   D  I  O
+PERDIO  db 15, 4, 17, 3, 8, 14
+;          G  A  N   O
+GANO    db 6, 0, 13, 14, 36, 36
+;          S   2   C  L   R
+S2CLR   db 18, 28, 2, 11, 17, 36
 ; List of names for player selection screen
-NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
+NAMES   dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
+; List of modes for mode selection screen
+MODES   dw MODE_T, MODE_P
+; List of speeds for each segment in PRO mode (divide by 8 to get time in secs)
+SPEED   db 16, 16, 8, 4, 2, 1
 
 ; ==== Notes on the registers ====
 ; These denote the registers which should store "permanent values" for the 
@@ -79,8 +93,11 @@ NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
 ; indices, checks, or iterations.  
 ;
 ; ==== Registers ==== 
-; R4: Stores the current screen page for *any* pages with screens
+; R4 : Stores the current screen page (or segment) for *any* pages with screens
+; R8 : Index for digit list. Also the current number displayed on modes
+; R9 : Stores digit 1 for the modes (for the comparisons)
 ; R10: Stores what state to render. Each state is defined by a constant.
+; R11: Stores the score for the modes (counter)
 ; R12: Stores the selected name by the player.
 ; R13: Keeps track of the desired elapsed time (in seconds).
 ; R14: Increases each time the timer interrupt is called. 
@@ -94,9 +111,11 @@ NAMES  dw LUIS, ANTHON, YARIEL, NICOLE, DRACIR, UIMERF, ORAVAN
 ; 2: "Player" Screen
 ; 3: Player Selection
 ; 4: Test/Pro Selection Screen
-; 5: Pro Mode
-; 6: Test Mode
-; 7: Results
+; 5: Test Mode
+; 6: Pro Mode
+; 7: "PERDIO" screen
+; 8: "GANO" screen
+; 9: "S2CLR" screen
 
 ; ==== FRAM Memory ====
 ; FRAM Array: 0x4400-0x4405
@@ -185,12 +204,10 @@ main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/17/22 =====
 SUB_initializeValues:
-        mov #0, R4 ; controls screens or page indices
         mov #0, R10 ; Start on the title screen
-        mov #0, R13 ; Don't need to keep track of time initially 
-        mov #0, R14 ; 0 timer counts 
+        call #SUB_disableTimer ; not needed for the title screen
         call #SUB_FRAMSetup   ; Setup FRAM 
-        call #SUB_titleScreen ; Display the title screen
+        call #SUB_titleScreen ; Display the title screen   
         ret 
 
 ; ===== FRAM initializer subroutines =====
@@ -230,7 +247,7 @@ initializeFRAM: ; set XXXXXX for top scorer and 0 for their score
         ; This certifies that our code has correctly accessed the FRAM locations.
         mov #FRAM, &0x4400 
         ; Store a dummy higher scorer
-        mov #NO_HIGH_SCORE, &0x4406
+        mov #NO_NAME, &0x4406
         ; Store 0 as highest score so far 
         mov.b #0, &0x440C
         ; Test score
@@ -250,8 +267,8 @@ endFRAMSetup:
 ; ===== 
 ; Postconditions: Executes the corresponding state based on the value of R10.
 ; =====
-; ===== Author: Yariel Mercado, Nicole Roman =====
-; ===== Date: 11/17/22 =====
+; ===== Author: Yariel Mercado, Nicole Roman, Anthony Mendez =====
+; ===== Date: 11/17/22 - 11/25/22 =====
 SUB_buttonStateManager: 
         cmp #0, R10
         jeq SUB_titleScreen
@@ -261,6 +278,18 @@ SUB_buttonStateManager:
         jeq SUB_playerScreen
         cmp #3, R10
         jeq SUB_playerSelectionScreen
+        cmp #4, R10
+        jeq SUB_modeSelectionScreen
+        cmp #5, R10
+        jeq SUB_testModeScreen
+        cmp #6, R10
+        jeq SUB_proModeScreen
+        cmp #7, R10
+        jeq SUB_perdioScreen 
+        cmp #8, R10
+        jeq SUB_ganoScreen
+        cmp #9, R10
+        jeq SUB_S2CLRscreen       
         ret
        
 ; ===== Timer State Manager Subroutine =====
@@ -270,11 +299,19 @@ SUB_buttonStateManager:
 ; Postconditions: Executes the corresponding state based on the current state
 ;                 (R10). 
 ; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/18/22 =====
+; ===== Author: Yariel Mercado, Anthony Mendez =====
+; ===== Date: 11/18/22 - 11/25/22 =====
 SUB_timerStateManager:
         cmp #1, R10 ; currently in the record screen
         jeq SUB_updateRecordScreen
+        cmp #5, R10 ; currently in the test mode screen
+        jeq SUB_updateTestDigit
+        cmp #6, R10 ; currently in the pro mode screen
+        jeq SUB_updateProDigit
+        cmp #7, R10 ; currently in the 'PERDIO' screen
+        jeq SUB_s2clrTransitionPerdio
+        cmp #8, R10 ; currently in the 'GANO' screen
+        jeq SUB_s2clrTransitionGano
         ret
         
 ; ===== Button Press Subroutines =====
@@ -290,8 +327,8 @@ SUB_timerStateManager:
 ; Postconditions: Jumps to the corresponding state transition based on the
 ;                 current game state.
 ; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/17/22 =====
+; ===== Author: Yariel Mercado, Anthony Mendez =====
+; ===== Date: 11/17/22 - 11/25/22 =====
 SUB_S1ButtonHandler:
         ; on the title screen, transitions to Record
         cmp #0, R10 
@@ -302,6 +339,18 @@ SUB_S1ButtonHandler:
         ; Cycle through the names on the player select screen
         cmp #3, R10 
         jeq SUB_updatePlayerScreen
+        ; Cycle through the modes on the mode selection screen
+        cmp #4, R10
+        jeq SUB_updateModeScreen
+        ; Move to next segment and compare selection to first digit if R4 > 0
+        cmp #5, R10
+        jeq SUB_selectionTest
+        ; Move to next segment and compare selection to first digit if R4 > 0
+        cmp #6, R10
+        jeq SUB_selectionPro
+        ; Quits S2CLR screen and returns to title screen
+        cmp #9, R10
+        jeq SUB_titleScreenTransition
         ret
         
 SUB_S2ButtonHandler:
@@ -311,6 +360,12 @@ SUB_S2ButtonHandler:
         ; Quits the player selection screen
         cmp #3, R10 
         jeq SUB_modeSelectionTransition
+        ; Quits the mode selection screen
+        cmp #4, R10
+        jeq SUB_testOrProModeTransition
+        ; sets TEST and PRO scores to zero
+        cmp #9, R10
+        jeq SUB_clrRecords
         ret
         
  ; ===== Transition Subroutines =====
@@ -323,9 +378,10 @@ SUB_S2ButtonHandler:
 ; Postconditions: Increments the register to the next transition and sets 
 ;                 the register values to the next state's requirements. 
 ; =====
-; ===== Author: Yariel Mercado =====
-; ===== Date: 11/18/22-11/22/22 =====
+; ===== Author: Yariel Mercado, Anthony Mendez, Luis D. Gonzalez =====
+; ===== Date: 11/18/22 - 11/25/22 =====
 SUB_recordStateTransition:      
+        mov #0, R4          ; controls screens or page indices
         inc R10             ; R10 == 1 (the Record Scores display)
         mov #16, R13        ; Set transitions to every 2 seconds
         call #SUB_enableTimer ; Enable timer
@@ -334,7 +390,7 @@ SUB_recordStateTransition:
         
 SUB_playerScreenStateTransition:
         inc R10                ; R10 == 2 (the "Player" screen)
-        call #SUB_disableTimer ; Not needed for player select
+        call #SUB_disableTimer ; Not needed for player select and mode select
         mov #2, &LCDCMEMCTL 
         ret
         
@@ -353,7 +409,97 @@ SUB_modeSelectionTransition:
         clr R4                 ; used as a paginator for PRO/TEST select
         mov #2, &LCDCMEMCTL 
         ret
- 
+
+SUB_testOrProModeTransition:
+        inc R4                 ; increase the paginator num by 1 to match state
+        add R4, R10            ; this way, adds 1 if R4 == 0, add 2 if R4 == 1.
+                               ; R10 == 5 (TEST mode)
+                               ; R10 == 6 (PRO  mode)
+        clr R4                 ; current segment on the screen (0-5) for modes
+        clr R8                 ; index starts at 0
+        clr R9                 ; set segment 1 value to zero momentarily
+        mov #1, R11            ; Score starts at 1 (goes from 1 to 6)
+        mov #2, &LCDCMEMCTL 
+        cmp #5, R10            ; if R10 == 5, go to TEST
+        jeq SUB_testModeTransition 
+        cmp #6, R10            ; if R10 == 6, go to PRO
+        jeq SUB_proModeTransition
+        ret
+
+SUB_testModeTransition:
+        mov #16, R13            ; For TEST, digits transitions every 2 seconds
+        call #SUB_enableTimer  ; Enable timer for the mode
+        ret
+
+SUB_proModeTransition:
+        mov #16, R13           ; For PRO, first 2 digits transition every 2 secs
+        call #SUB_enableTimer  ; Enable timer for the mode
+        ret
+
+SUB_perdioTransitionTest:
+        clr R8                 ; Reset the digit list index 
+        clr R9                 ; Reset the first digit
+        incd R10               ; From TEST: R10 = 5 + 2 -> R10 = 7
+        mov #40, R13           ; Timer set to 5 seconds
+        mov #2, &LCDCMEMCTL 
+        call #SUB_perdioScreen ; Display screen
+        call #SUB_updateTestScore
+        ret
+
+SUB_ganoTransitionTest:
+                               ; No need for comparison if player wins
+        mov.b R11, &0x440D     ; replaces FRAM TEST Score to value of R11
+        clr R8                 ; Reset the digit list index 
+        clr R9                 ; Reset the first digit
+        add #3, R10            ; From TEST: R10 = 5 + 3 -> R10 == 8
+        mov #40, R13           ; Timer set to 5 seconds
+        mov #2, &LCDCMEMCTL 
+        call #SUB_ganoScreen   ; Display screen
+        ret
+        
+SUB_perdioTransitionPro:
+        clr R8                 ; Reset the digit list index 
+        clr R9                 ; Reset the first digit
+        add #1, R10            ; From PRO: R10 = 6 + 1 -> R10 = 7
+        mov #40, R13           ; Timer set to 5 seconds
+        mov #2, &LCDCMEMCTL 
+        call #SUB_perdioScreen
+        call #SUB_updateProScore
+        ret
+        
+SUB_ganoTransitionPro:
+                               ; No need for comparison if player wins
+        mov.b R11, &0x440C     ; Updates FRAM PRO Score to value of R11
+        mov.b R12, &0x4406     ; Updates FRAM PRO Name to value of R12
+        clr R8                 ; Reset the digit list index 
+        clr R9                 ; Reset the first digit
+        incd R10               ; From PRO: R10 = 6 + 2 -> R10 == 8
+        mov #40, R13           ; Timer set to 5 seconds
+        mov #2, &LCDCMEMCTL 
+        call #SUB_ganoScreen
+        ret
+        
+SUB_s2clrTransitionPerdio:
+        incd R10               ; From Perdio: R10 = 7 + 2 -> R10 == 9
+        call #SUB_disableTimer ; Not needed for S2CLR screen
+        mov #2, &LCDCMEMCTL 
+        call #SUB_S2CLRscreen
+        ret
+        
+SUB_s2clrTransitionGano:
+        inc R10                ; From gano: R10 = 8 + 1 -> R10 == 9
+        call #SUB_disableTimer ; Not needed for S2CLR screen
+        mov #2, &LCDCMEMCTL 
+        call #SUB_S2CLRscreen
+        ret
+
+SUB_titleScreenTransition:
+        clr R4                 ; Reset R4 for the record screen
+        clr R11                ; Reset score
+        clr R10                ; Reset R10 to go to the title screen
+        mov #2, &LCDCMEMCTL 
+        ret
+        
 ; ===== States Execution =====
 
 ; ===== Title screen display subroutine =====
@@ -369,7 +515,6 @@ SUB_modeSelectionTransition:
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/14/22-11/17/22 =====
 SUB_titleScreen:
-        call #SUB_disableTimer ; not needed for the title screen
         mov #TITLE, R15
         call #SUB_displayCharacterArray
         ret
@@ -474,7 +619,7 @@ updateScreen:
 ; Postconditions: Draws the various player names onto the LCD and saves the 
 ;                 selected option in R12.
 ; =====
-; ===== Author: Yariel Mercado, Nicole Roman =====
+; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/19/22-11/21/22 =====
 SUB_playerScreen:
         mov  #PLAYER, R15
@@ -513,7 +658,290 @@ updateSelection:
         mov #2, &LCDCMEMCTL ; Screen is later updated after the ISR processes
                             ; the button presses.
         ret
+
+; ===== Test & Pro modes Selection Screen Subroutines =====
+; ===== 
+; Objective: Loops around the two modes with S1.1 and confirm with S1.2. 
+; =====
+; =====  Preconditions: R4 must be within the range of 0-1. =====
+; ===== 
+; Postconditions: R4 will store (temporally) the value of the selected mode.
+;                 Stores 0 (zero) if selected mode is TEST, 1 (one) if PRO.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/23/22 =====
+SUB_modeSelectionScreen:
+        push.w R4
+        inc R4
+        mov MODES(R4), R15; display the mode name at the correct index
+        pop R4
+        call #SUB_displayCharacterArray
+        ret
+
+; ===== Test & Pro modes Selection Screen Page Iterator Subroutines =====
+; ===== 
+; Objective: Verify R4's value in order to draw the corresponding mode. 
+; =====
+; =====  Preconditions: The screen must be cleared =====
+; ===== 
+; Postconditions: Sets R4 to the correct value on the TEST & PRO 
+;                 selection screen.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/23/22 =====
+SUB_updateModeScreen:
+        cmp #1, R4
+        jeq resetModeIterator
+        inc R4
+        jmp updateModeSelection
+
+resetModeIterator:
+        clr  R4
+        jmp  updateModeSelection
+
+updateModeSelection:
+        mov #2, &LCDCMEMCTL ; Screen is later updated after the ISR processes
+                            ; the button presses.
+        ret
+
+; ===== Test Mode Subroutines =====
+; ===== 
+; Objective: From left to right, iterate through numbers from zero to 9.
+;            each digit appears on screen for 2 seconds, select digit with S1.
+;            If digit > 9, player loses; also, if any digit from index 1 to 5
+;            is not equal to digit index 0, player also loses.
+;            if by the end all numbers are equal, player wins 
+; =====
+; =====  Preconditions: R10 must be equal to 5 (five) =====
+; ===== 
+; Postconditions: store the Test score in 0x440D
+;                 display "PERDIO" if player loses
+;                 display "GANO" if player wins
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/25/22 =====
+SUB_testModeScreen:
+        call #SUB_displaySegmentData
+        clr R14 ; set timer count to zero to allow each digit to show for 2 secs
+        ret
         
+SUB_selectionTest:
+        cmp #0, R4                 ; if just selected first digit
+        jeq storeFirstDigit        ; go store it
+        cmp R8, R9                 ; compare selected number with first digit
+        jne SUB_perdioTransitionTest ; Not equal: go to 'PERDIO'
+                                   ; if equal do the following
+        inc R4                     ; inc segment index to move to next segment
+        clr R8                     ; reset index for the number (starts at 0)
+        inc R11                    ; increase score
+        cmp #6, R11                ; if score == 6, player wins
+        jeq SUB_ganoTransitionTest ; got 6 points: go to 'GANO'
+        ret
+        
+storeFirstDigit:
+        mov R8, R9                 ; save in R9 the first digit's value (R8)
+        inc R4                     ; inc segment index to move to next segment
+        clr R8                     ; reset index for the number (starts at 0)
+        ret
+
+; ===== Update Test Mode High Score subroutines =====
+; =====
+; Objective: Compares new score (stored on R11)with previous high score stored 
+; =====      on FRAM
+; =====
+; ===== Postconditions: If R11 is greater on equal to value of 0x440D on FRAM,
+; =====                 replace that value with the on stored on R11.
+; ===== Author: Yariel Mercado, Luis D. Gonzalez, Anthony Mendez =====
+; ===== Date: 11/25/2022 - 11/27/2022 =====
+SUB_updateTestScore:
+        cmp.b &0x440D, R11     ; Check for new High Score 
+        jge newRecordTest      ; Jump if R11 >= previous High Score
+        jmp endTestScoreUpdate
+  
+newRecordTest:
+        mov.b R11, &0x440D      ; replaces FRAM TEST Score to value of R11
+        jmp endTestScoreUpdate
+
+endTestScoreUpdate:
+        ret
+  
+        
+; ===== Update Digit subroutines =====
+; ===== 
+; Objective: Updates the display based on the timer, current segment, and 
+;            index digit for test mode. 
+; =====
+; ===== 
+; Preconditions: R5 has to be less or equal to 9 (nine).  
+; =====
+; ===== 
+; Postconditions: Updates the next digit in the corresponding segment.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/25/22 =====
+        
+SUB_updateTestDigit:
+        cmp #9, R8 ; if the index goes beyond 9, the player loses
+        jeq SUB_perdioTransitionTest
+        inc R8
+        jmp updateTestSegment
+        
+updateTestSegment:
+        call #SUB_testModeScreen
+        ret
+
+; ===== Pro Mode Subroutines =====
+; ===== 
+; Objective: From left to right, iterate through numbers from zero to 9.
+;            each digit appears on screen for less seconds
+;            as player selects digits with S1.
+;            If digit > 9, player loses; also, if any digit from index 1 to 5
+;            is not equal to digit index 0, player also loses.
+;            if by the end all numbers are equal, player wins  
+; =====
+; =====  Preconditions: R10 must be equal to 6 (six) =====
+; ===== 
+; Postconditions: store the Pro score in 0x440C, and player in 0x4406
+;                 display "PERDIO" if player loses
+;                 display "GANO" if player wins    
+; =====
+; =====
+; ===== Author: Luis D. Gonzalez, Anthony Mendez =====
+; ===== Date: 11/25/2022 =====
+SUB_proModeScreen:
+        call #SUB_displaySegmentData
+        mov.b SPEED(R4), R13 ; Decrease timer speed for the value in segment R4
+        clr R14 ; set timer count to zero to allow each digit to show for X secs
+        ret
+        
+SUB_selectionPro:
+        cmp #0, R4                 ; if just selected first digit
+        jeq storeFirstDigitPro     ; go store it
+        cmp R8, R9                 ; compare selected number with first digit
+        jne SUB_perdioTransitionPro ; Not equal: go to 'PERDIO'
+                                   ; if equal do the following
+        inc R4                     ; inc segment index to move to next segment
+        clr R8                     ; reset index for the number (starts at 0)
+        inc R11                    ; increase score
+        cmp #6, R11                ; if score == 6, player wins
+        jeq SUB_ganoTransitionPro ; got 6 points: go to 'GANO'
+        ret
+        
+storeFirstDigitPro:
+        mov R8, R9                 ; save in R9 the first digit's value (R8)
+        inc R4                     ; inc segment index to move to next segment
+        clr R8                     ; reset index for the number (starts at 0)
+        ret
+        
+; ===== Update Pro Mode High Score subroutines =====
+; =====
+; Objective: Compares new score (stored on R11)with previous high score stored 
+; =====      on FRAM
+; =====
+; ===== Postconditions: If R11 is greater on equal to value of 0x440C on FRAM,
+; =====                 replace that value with the on stored on R11, and
+; =====                 replace name stored on 0x4406 on FRAM with name of new
+; =====                 record holder (stored on R12). 
+; ===== Author: Yariel Mercado, Luis D. Gonzalez, Anthony Mendez =====
+; ===== Date: 11/25/2022 - 11/27/2022 =====
+SUB_updateProScore:
+        cmp.b &0x440C, R11       ; Check for new High Score
+        jge newRecordPro       ; Jump if R11 >= previous High Score
+        jmp endProScoreUpdate
+        
+newRecordPro:
+        mov.b R11, &0x440C     ; 0updates FRAM PRO Score to value of R11
+        mov.b R12, &0x4406     ; updates FRAM PRO Name to value of R12
+        jmp endProScoreUpdate
+
+endProScoreUpdate:
+        ret
+        
+; ===== Update Digit subroutines =====
+; ===== 
+; Objective: Updates the display based on the timer, current segment, and 
+;            index digit for test mode. 
+; =====
+; ===== 
+; Preconditions: R5 has to be less or equal to 9 (nine).  
+; =====
+; ===== 
+; Postconditions: Updates the next digit in the corresponding segment.
+; =====
+; ===== Author: Luis D. Gonzalez, Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/25/22 =====
+        
+SUB_updateProDigit:
+        cmp #9, R8 ; if the index goes beyond 9, the player loses
+        jeq SUB_perdioTransitionPro
+        inc R8
+        jmp updateProSegment
+        
+updateProSegment:
+        call #SUB_proModeScreen
+        ret
+        
+; ===== 'PERDIO' Screen Subroutines =====
+; ===== 
+; Objective: Displaying 'PERDIO' for 5 seconds 
+; =====
+; =====
+; Preconditions: As soon as a digit from the second onwards is not equal to 
+;                the first digit selected. Also if any digit goes beyond 9
+; =====
+; =====
+; Postconditions: Move to 'S2CLR' screen after 5 seconds
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/25/22 =====
+SUB_perdioScreen:
+        mov  #PERDIO, R15
+        call #SUB_displayCharacterArray
+        ret
+
+; ===== 'GANO' Screen Subroutines =====
+; ===== 
+; Objective: Displaying 'GANO' for 5 seconds 
+; =====
+; =====
+; Preconditions: If all six digits are equal, player wins and gets this screen
+; =====
+; =====
+; Postconditions: Move to 'S2CLR' screen after 5 seconds
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/25/22 =====
+SUB_ganoScreen:
+       mov  #GANO, R15
+       call #SUB_displayCharacterArray
+       ret
+
+; ===== S2CLR Screen Subroutines =====
+; ===== 
+; Objective: Displaying 'S2CLR'. If S1.1 is pressed, return to title screen.
+;            If S1.2 is pressed, TEST and PRO records turn to zero
+; =====
+; =====
+; Preconditions: This screen must be drawn 5 seconds after "PERDIO" or "GANO"
+; =====
+; =====
+; Postconditions: If s1.2 is pressed, 0x440C (Top PRO Score), 
+;                 and 0x440D (Top TEST Score) turn to zero. 
+;                 If S1.2 is pressed, return to title screen
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/22/22 - 11/25/22 =====
+SUB_S2CLRscreen:
+       mov  #S2CLR, R15
+       call #SUB_displayCharacterArray
+       ret
+       
+SUB_clrRecords:
+       mov   #NO_NAME, &0x4406 ; resets high scorer
+       mov.b #0, &0x440C   ;sets top PRO Score to zero
+       mov.b #0, &0x440D   ;sets top TEST Score to zero
+       ret
+
 ; ===== General subroutines. =====
 
 ; ===== General LCD display subroutines. =====
@@ -564,6 +992,30 @@ endDrawing:  ; restore non-permanent modification registers (check comments)
         pop R6
         pop R5
         ret  
+
+; ===== Segment display subroutines. =====
+; ===== 
+; Objective: Given the index, displays the characters at the corresponding  
+;            (TEST or PRO) mode segment on the LCD. 
+; =====
+; ===== 
+; Preconditions: Each integer, representing the character to be drawn, should
+;                go from 0-9, that number is stored in R8. R4 should store the
+;                number of the segment to be drawn on.
+; =====
+; ===== 
+; Postconditions: Draws the indicated numbers onto the segment.
+; =====
+; ===== Author: Anthony Mendez =====
+; ===== Date: 11/26/2022 =====
+SUB_displaySegmentData:
+        push.w R7 ; Value for current LCD memory offset (same index as R4)
+        mov.b LCD_OFFSETS(R4), R7 ; where in LCD memory to draw (offset)
+        ; increment first to safely skip writing to the screen when EMPTY
+        mov.b DIGIT_H(R8), 0x0A20(R7)
+        mov.b DIGIT_L(R8), 0x0A20+1(R7)
+        pop R7 ; restore non-permanent modification registers (check comments)
+        ret
 
 ; ===== Timer management subroutines =====
 ; ===== 
@@ -660,13 +1112,13 @@ ISR_PORT1:
         jmp     PORT1_ISR_END  
         
 S1Success: ; S1 or S2 have been succesfully pressed
-        call  #SUB_delay                   ; Helps process input
+        call  #SUB_delay              ; Helps process one press at a time
         bic.b #00000110B, &P1IFG      ; Clear interrupt flags
         call  #SUB_S1ButtonHandler
         jmp PORT1_ISR_END
         
 S2Success:
-        call  #SUB_delay                   ; Helps process input
+        call  #SUB_delay              ; Helps process input one press at a time
         bic.b #00000110B, &P1IFG      ; Clear interrupt flags
         call  #SUB_S2ButtonHandler
         jmp PORT1_ISR_END
@@ -675,4 +1127,3 @@ PORT1_ISR_END:
         call #SUB_buttonStateManager  ; Manage program state
         reti
         END
-        
