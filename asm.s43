@@ -22,7 +22,7 @@
 ; ======== Variable/array directives ========
 ; Each character on the screen is drawn via the indices present in the 
 ; following arrays. Define the high bytes then the low bytes in order to access
-; either array with just CHAR_H. 
+; either array with just the CHAR array. 
 ; ==== Letters A-Z & Numbers 0-9 ====
 ; Chars:    A     B     C     D     E     F     G     H     I     J     K     L     M     N     O     P     Q     R     S     T     U     V     W     X     Y     Z  
 CHAR_H  db 0xEF, 0xF1, 0x9C, 0xF0, 0x9F, 0x8E, 0xBD, 0x6F, 0x90, 0x78, 0x0E, 0x1C, 0x6C, 0x6C, 0xFC, 0xCF, 0xFC, 0xCF, 0xB7, 0x80, 0x7C, 0x0C, 0x6C, 0x00, 0x00, 0x90
@@ -93,19 +93,19 @@ SPEED   db 16, 16, 8, 4, 2, 1
 ; indices, checks, or iterations.  
 ;
 ; ==== Registers ==== 
-; R4 : Stores the current screen page (or segment) for *any* pages with screens
-; R8 : Index for digit list. Also the current number displayed on modes
-; R9 : Stores digit 1 for the modes (for the comparisons)
+; R4 : Stores the current screen page (or segment) for *any* pages with screens.
+; R8 : Index for digits. Also the current number displayed on modes.
+; R9 : Stores 0 or 1 for the game modes.
 ; R10: Stores what state to render. Each state is defined by a constant.
-; R11: Stores the score for the modes (counter)
+; R11: Stores the score for the selected game modes.
 ; R12: Stores the selected name by the player.
-; R13: Keeps track of the desired elapsed time (in seconds).
+; R13: Stores track the desired elapsed time.
 ; R14: Increases each time the timer interrupt is called. 
 ; R15: Stores the starting address of the array containing the indices 
 ;      needed to draw a character.
 
 ; ==== States ====
-; (Each state is stored in R10)
+; (R10 keeps track of the game states)
 ; 0: Title Screen
 ; 1: Records
 ; 2: "Player" Screen
@@ -134,8 +134,9 @@ UnlockGPIO:                             ; Disable de GPIO power-on default
 ; Objective: Initialize the MSP430 ports, timers, interrupts, 
 ;            and energize the display. 
 ; =====
+; ===== Preconditions: Will only be called when the MSP is first energized. =====
 ; ===== 
-; Postconditions: Will reset and activate the necessary input pins. Also
+; Postconditions: Resets and activates the necessary input pins. Also
 ;                 activates the necessary settings for the LCD, interrupts, 
 ;                 and the timers to function. 
 ; =====
@@ -194,8 +195,7 @@ main:   MOV.W   #WDTPW+WDTHOLD,&WDTCTL  ; Stop watchdog timer
 ; Objective: Initialize the various registers and settings utilized by the game.
 ; =====
 ; ===== 
-; Preconditions: Must only be called the first time the program runs on an MSP 
-;                or when the MSP is turned on. 
+; Preconditions: Must only be called the first time  the MSP is turned on. 
 ; =====
 ; ===== 
 ; Postconditions: Modifies any registers or locations in memory that store
@@ -227,7 +227,7 @@ SUB_FRAMSetup:
         mov &0x4400, R5 ; first location in memory for FRAM
         ; Check whether FRAM has been correctly initialized based on 
         ; requirements. FRAM has been correctly set up if the first 6
-        ; places in memory contain the FRAM array of characters.
+        ; places in memory contain the FRAM array characters.
         push.w R6 ; index for FRAM array
         mov #0, R6
         jmp validateFRAM
@@ -248,7 +248,7 @@ initializeFRAM: ; set XXXXXX for top scorer and 0 for their score
         mov #FRAM, &0x4400 
         ; Store a dummy higher scorer
         mov #NO_NAME, &0x4406
-        ; Store 0 as highest score so far 
+        ; Store 0 as the default high score
         mov.b #0, &0x440C
         ; Test score
         mov.b #0, &0x440D
@@ -261,7 +261,7 @@ endFRAMSetup:
 
 ; ===== Game State Managers =====
 
-; ===== Button Game State Manager Subroutine =====
+; ===== Button Game State Manager Subroutines =====
 ; ===== Objective: Controls *button* sensitive game states. =====
 ; ===== Preconditions: Must be called from the PORT1 ISR. =====
 ; ===== 
@@ -271,28 +271,72 @@ endFRAMSetup:
 ; ===== Date: 11/17/22 - 11/25/22 =====
 SUB_buttonStateManager: 
         cmp #0, R10
-        jeq SUB_titleScreen
+        jeq callTitleScreen
         cmp #1, R10
-        jeq SUB_recordScreen
+        jeq callRecordScreen
         cmp #2, R10
-        jeq SUB_playerScreen
+        jeq callPlayerScreen
         cmp #3, R10
-        jeq SUB_playerSelectionScreen
+        jeq callPlayerSelectionScreen
         cmp #4, R10
-        jeq SUB_modeSelectionScreen
+        jeq callModeSelectionScreen
         cmp #5, R10
-        jeq SUB_testModeScreen
+        jeq callTestModeScreen
         cmp #6, R10
-        jeq SUB_proModeScreen
+        jeq callProModeScreen
         cmp #7, R10
-        jeq SUB_perdioScreen 
+        jeq callLoserScreen
         cmp #8, R10
-        jeq SUB_ganoScreen
+        jeq callWinnerScreen
         cmp #9, R10
-        jeq SUB_S2CLRscreen       
+        jeq callS2Screen
+        ; End State Manager
+        jmp endButtonManager
+
+callTitleScreen:
+        call #SUB_titleScreen
+        jmp endButtonManager
+
+callRecordScreen:
+        call #SUB_recordScreen
+        jmp endButtonManager
+
+callPlayerScreen:
+        call #SUB_playerScreen
+        jmp endButtonManager
+        
+callPlayerSelectionScreen:
+        call #SUB_playerSelectionScreen
+        jmp endButtonManager
+
+callModeSelectionScreen:
+        call #SUB_modeSelectionScreen
+        jmp endButtonManager
+        
+callTestModeScreen:
+        call #SUB_testModeScreen
+        jmp endButtonManager
+        
+callProModeScreen:
+        call #SUB_proModeScreen
+        jmp endButtonManager
+        
+callLoserScreen:
+        call #SUB_perdioScreen
+        jmp endButtonManager
+        
+callWinnerScreen:
+        call #SUB_ganoScreen
+        jmp endButtonManager
+        
+callS2Screen:
+        call #SUB_S2CLRscreen
+        jmp endButtonManager
+       
+endButtonManager:
         ret
        
-; ===== Timer State Manager Subroutine =====
+; ===== Timer State Manager Subroutines =====
 ; ===== Objective: Controls *time* sensitive game states or actions. =====
 ; ===== Preconditions: Must be called from the TIMER ISR. =====
 ; ===== 
@@ -303,15 +347,39 @@ SUB_buttonStateManager:
 ; ===== Date: 11/18/22 - 11/25/22 =====
 SUB_timerStateManager:
         cmp #1, R10 ; currently in the record screen
-        jeq SUB_updateRecordScreen
+        jeq callUpdateRecordScreen
         cmp #5, R10 ; currently in the test mode screen
-        jeq SUB_updateTestDigit
+        jeq callUpdateTestModeDigit
         cmp #6, R10 ; currently in the pro mode screen
-        jeq SUB_updateProDigit
+        jeq callUpdateProModeDigit
         cmp #7, R10 ; currently in the 'PERDIO' screen
-        jeq SUB_s2clrTransitionPerdio
+        jeq callS2ScreenLoss
         cmp #8, R10 ; currently in the 'GANO' screen
-        jeq SUB_s2clrTransitionGano
+        jeq callS2ScreenWin
+        ; End State Manager
+        jmp endTimerManager
+        
+callUpdateRecordScreen:
+        call #SUB_updateRecordScreen
+        jmp endTimerManager
+        
+callUpdateTestModeDigit:
+        call #SUB_updateTestDigit
+        jmp endTimerManager
+        
+callUpdateProModeDigit:
+        call #SUB_updateProDigit
+        jmp endTimerManager
+        
+callS2ScreenLoss:
+        call #SUB_s2clrTransitionPerdio
+        jmp endTimerManager
+        
+callS2ScreenWin:
+        call #SUB_s2clrTransitionGano
+        jmp endTimerManager
+
+endTimerManager:
         ret
         
 ; ===== Button Press Subroutines =====
