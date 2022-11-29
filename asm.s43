@@ -382,14 +382,13 @@ callS2ScreenWin:
 endTimerManager:
         ret
         
-; ===== Button Press Subroutines =====
+; ===== S1 Press Subroutines =====
 ; ===== 
-; Objective: Executes the necessary commands based on what buttons the user 
-;            pressed. 
+; Objective: Executes the necessary commands based on whether S1 was pressed
+;            or not.
 ; =====
 ; ===== 
-; Preconditions: Must be called from either of the ISRs after a *succesful*
-;                button press.
+; Preconditions: Must be called from the ISRs after a *succesful* button press.
 ; =====
 ; ===== 
 ; Postconditions: Jumps to the corresponding state transition based on the
@@ -400,48 +399,114 @@ endTimerManager:
 SUB_S1ButtonHandler:
         ; on the title screen, transitions to Record
         cmp #0, R10 
-        jeq SUB_recordStateTransition 
+        jeq callRecordTransition
         ; on the "Player" screen, transitions to Player Select
         cmp #2, R10 
-        jeq SUB_playerSelectionStateTransition 
+        jeq callPlayerSelectTransition
         ; Cycle through the names on the player select screen
         cmp #3, R10 
-        jeq SUB_updatePlayerScreen
+        jeq callUpdatePlayerScreen
         ; Cycle through the modes on the mode selection screen
         cmp #4, R10
-        jeq SUB_updateModeScreen
+        jeq callUpdateGameModeScreen
         ; Move to next segment and compare selection to first digit if R4 > 0
         cmp #5, R10
-        jeq SUB_selectionTest
+        jeq callSelectTestSegment
         ; Move to next segment and compare selection to first digit if R4 > 0
         cmp #6, R10
-        jeq SUB_selectionPro
+        jeq callSelectProSegment
         ; Quits S2CLR screen and returns to title screen
         cmp #9, R10
-        jeq SUB_titleScreenTransition
+        jeq callPlayAgain
+        ; Finished managing current S1 press
+        jmp endS1ButtonHandler
+        
+callRecordTransition:
+        call #SUB_recordStateTransition
+        jmp endS1ButtonHandler
+        
+callPlayerSelectTransition:
+        call #SUB_playerSelectionStateTransition
+        jmp endS1ButtonHandler
+        
+callUpdatePlayerScreen:
+        call #SUB_updatePlayerScreen
+        jmp endS1ButtonHandler
+        
+callUpdateGameModeScreen:
+        call #SUB_updateModeScreen
+        jmp endS1ButtonHandler
+        
+callSelectTestSegment:
+        call #SUB_selectionTest
+        jmp endS1ButtonHandler
+        
+callSelectProSegment:
+        call #SUB_selectionPro
+        jmp endS1ButtonHandler
+        
+callPlayAgain:
+        call #SUB_titleScreenTransition
+        jmp endS1ButtonHandler
+        
+endS1ButtonHandler:
         ret
         
+; ===== S2 Press Subroutines =====
+; ===== 
+; Objective: Executes the necessary commands based on whether S2 was pressed
+;            or not.
+; =====
+; ===== 
+; Preconditions: Must be called from the ISRs after a *succesful* button press.
+; =====
+; ===== 
+; Postconditions: Jumps to the corresponding state transition based on the
+;                 current game state.
+; =====
+; ===== Author: Yariel Mercado, Anthony Mendez =====
+; ===== Date: 11/17/22 - 11/25/22 =====
 SUB_S2ButtonHandler:
         ; Quits the record screen
         cmp #1, R10 
-        jeq SUB_playerScreenStateTransition
+        jeq callPlayerScreenTransition
         ; Quits the player selection screen
         cmp #3, R10 
-        jeq SUB_modeSelectionTransition
+        jeq callModeSelectTransition
         ; Quits the mode selection screen
         cmp #4, R10
-        jeq SUB_testOrProModeTransition
+        jeq callGameTransition
         ; sets TEST and PRO scores to zero
         cmp #9, R10
-        jeq SUB_clrRecords
+        jeq callRecordCLR
+        ; Finished managing current S2 press
+        jmp endS2ButtonHandler
+
+callPlayerScreenTransition:
+        call #SUB_playerScreenStateTransition
+        jmp endS2ButtonHandler
+        
+callModeSelectTransition:
+        call #SUB_modeSelectionTransition
+        jmp endS2ButtonHandler
+        
+callGameTransition:
+        call #SUB_testOrProModeTransition
+        jmp endS2ButtonHandler
+        
+callRecordCLR:
+        call #SUB_clrRecords
+        jmp endS2ButtonHandler
+
+endS2ButtonHandler:
         ret
         
- ; ===== Transition Subroutines =====
+; ===== Transition Subroutines =====
 ; ===== 
 ; Objective: Transitions to a different state based on both button presses as
 ;            well as the current state.
 ; =====
-; ===== Preconditions: Must be called from either of the ISRs. =====
+; ===== Preconditions: Must be called from either of the state managers. =====
 ; ===== 
 ; Postconditions: Increments the register to the next transition and sets 
 ;                 the register values to the next state's requirements. 
@@ -496,12 +561,12 @@ SUB_testOrProModeTransition:
 
 SUB_testModeTransition:
         mov #16, R13            ; For TEST, digits transitions every 2 seconds
-        call #SUB_enableTimer  ; Enable timer for the mode
+        call #SUB_enableTimer  ; Enable timer for the game mode
         ret
 
 SUB_proModeTransition:
         mov #16, R13           ; For PRO, first 2 digits transition every 2 secs
-        call #SUB_enableTimer  ; Enable timer for the mode
+        call #SUB_enableTimer  ; Enable timer for the game mode
         ret
 
 SUB_perdioTransitionTest:
@@ -591,9 +656,7 @@ SUB_titleScreen:
 ; ===== 
 ; Objective: Loops around the various Record screens based on R4's value.
 ; =====
-; ===== 
-; Preconditions: The screen must be cleared.
-; =====
+; ===== Preconditions: The screen must be cleared. =====
 ; ===== 
 ; Postconditions: Draws the various record screens onto the LCD. R4 is 
 ;                 incremented every 2 seconds by the timer. 
@@ -655,12 +718,8 @@ endRecordScreen:
 ; Objective: Updates the Record screen display based on the timer and the 
 ;            current "page". 
 ; =====
-; ===== 
-; Preconditions: R4 must be between 0-4.  
-; =====
-; ===== 
-; Postconditions: Updates the current record screen onto the LCD. 
-; =====
+; ===== Preconditions: R4 must be between 0-4. =====
+; =====  Postconditions: Updates the current record screen onto the LCD. =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/18/22 =====
 SUB_updateRecordScreen:
@@ -682,11 +741,8 @@ updateScreen:
 ; ===== 
 ; Objective: Loops around the names of possible players based on the value of R4. 
 ; =====
-; =====  Preconditions: R4 must be within the range of 0-8. =====
-; ===== 
-; Postconditions: Draws the various player names onto the LCD and saves the 
-;                 selected option in R12.
-; =====
+; ===== Preconditions: R4 must be within the range of 0-8. =====
+; ===== Postconditions: Draws the various player names onto the LCD. =====
 ; ===== Author: Yariel Mercado =====
 ; ===== Date: 11/19/22-11/21/22 =====
 SUB_playerScreen:
@@ -729,7 +785,7 @@ updateSelection:
 
 ; ===== Test & Pro modes Selection Screen Subroutines =====
 ; ===== 
-; Objective: Loops around the two modes with S1.1 and confirm with S1.2. 
+; Objective: Loops around the two modes with S1 and confirm with S2. 
 ; =====
 ; =====  Preconditions: R4 must be within the range of 0-1. =====
 ; ===== 
@@ -750,7 +806,7 @@ SUB_modeSelectionScreen:
 ; ===== 
 ; Objective: Verify R4's value in order to draw the corresponding mode. 
 ; =====
-; =====  Preconditions: The screen must be cleared =====
+; ===== Preconditions: The screen must be cleared =====
 ; ===== 
 ; Postconditions: Sets R4 to the correct value on the TEST & PRO 
 ;                 selection screen.
@@ -782,9 +838,9 @@ updateModeSelection:
 ; =====
 ; =====  Preconditions: R10 must be equal to 5 (five) =====
 ; ===== 
-; Postconditions: store the Test score in 0x440D
-;                 display "PERDIO" if player loses
-;                 display "GANO" if player wins
+; Postconditions: Store the Test score in 0x440D.
+;                 Display "PERDIO" if player loses.
+;                 Display "GANO" if player wins.
 ; =====
 ; ===== Author: Anthony Mendez =====
 ; ===== Date: 11/22/22 - 11/25/22 =====
