@@ -2,7 +2,7 @@
 #                                                                              #
 #      IAR Universal Linker V6.6.2.104                                         #
 #                                                                              #
-#           Link time     =  21/Nov/2022  23:21:01                             #
+#           Link time     =  29/Nov/2022  17:26:28                             #
 #           Target CPU    =  MSP430                                            #
 #           List file     =  "C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\D #
 #                            ebug\List\KasinoGroup#07.map"                     #
@@ -12,7 +12,7 @@
 #                            UBROF version 10.0.6                              #
 #                            Using library modules for C-SPY (-rt)             #
 #           Command line  =  -f                                                #
-#                            C:\Users\YARIEL~1\AppData\Local\Temp\EWC72.tmp    #
+#                            C:\Users\YARIEL~1\AppData\Local\Temp\EWA113.tmp   #
 #                            ("C:\Users\Yariel Mercado\Desktop\KasinoGroup#07\ #
 #                            Debug\Obj\asm.r43"                                #
 #                            -o                                                #
@@ -132,88 +132,193 @@ CSTACK
   Segment part 0. ROOT 
     -------------------------------------------------------------------------
 <CODE> 1 (was CODE)
-  Relative segment, address: 4400 - 632F (0x1f30 bytes), align: 1
+  Relative segment, address: 4400 - 663D (0x223e bytes), align: 1
   Segment part 1. ROOT        Intra module refs:   Absolute parts
            ENTRY                   ADDRESS         REF BY
            =====                   =======         ======
-           main                    611A 
+           main                    6142 
            LOCAL                   ADDRESS         
            =====                   =======         
-           ISR_TIMER               62E6 
-           ISR_PORT1               62F6 
-           init                    60AC 
+           ISR_TIMER               65F4 
+           ISR_PORT1               6604 
+           init                    60D4 
            CHAR_H                  6000 
-           CHAR_L                  601A 
-           DIGIT_H                 6034 
+           DIGIT_H                 601A 
+           CHAR_L                  6025 
            DIGIT_L                 603F 
            LCD_OFFSETS             604A 
            TITLE                   6050 
            RECORD                  6056 
            TEST                    605C 
-           PLAYER                  6062 
-           NO_HIGH_SCORE           6068 
-           FRAM                    606E 
-           LUIS                    6074 
-           ANTHON                  607A 
-           YARIEL                  6080 
-           NICOLE                  6086 
-           DRACIR                  608C 
-           UIMERF                  6092 
-           ORAVAN                  6098 
-           NAMES                   609E 
-           UnlockGPIO              60B0 
+           MODE_T                  6062 
+           MODE_P                  6068 
+           PLAYER                  606E 
+           NO_NAME                 6074 
+           FRAM                    607A 
+           LUIS                    6080 
+           ANTHON                  6086 
+           YARIEL                  608C 
+           NICOLE                  6092 
+           DRACIR                  6098 
+           UIMERF                  609E 
+           ORAVAN                  60A4 
+           PERDIO                  60AA 
+           GANO                    60B0 
+           S2CLR                   60B6 
+           NAMES                   60BC 
+           MODES                   60CA 
+           SPEED                   60CE 
+           UnlockGPIO              60D8 
            SUB_setupDeviceHardware
-                                   60B4 
-           SUB_initializeValues    6130 
-           SUB_FRAMSetup           6142 
-           SUB_titleScreen         61EA 
-           validateFRAM            614E 
-           endFRAMSetup            6176 
-           initializeFRAM          6160 
+                                   60DC 
+           SUB_initializeValues    6158 
+           SUB_disableTimer        65D2 
+           SUB_FRAMSetup           6168 
+           SUB_titleScreen         63DA 
+           validateFRAM            6174 
+           endFRAMSetup            619C 
+           initializeFRAM          6186 
            SUB_buttonStateManager
-                                   617C 
-           SUB_recordScreen        61F8 
-           SUB_playerScreen        6260 
+                                   61A2 
+           callTitleScreen         61D6 
+           callRecordScreen        61DC 
+           callPlayerScreen        61E2 
+           callPlayerSelectionScreen
+                                   61E8 
+           callModeSelectionScreen
+                                   61EE 
+           callTestModeScreen      61F4 
+           callProModeScreen       61FA 
+           callLoserScreen         6200 
+           callWinnerScreen        6206 
+           callS2Screen            620C 
+           endButtonManager        6212 
+           SUB_recordScreen        63E4 
+           SUB_playerScreen        644C 
            SUB_playerSelectionScreen
-                                   626A 
-           SUB_timerStateManager   6190 
+                                   6456 
+           SUB_modeSelectionScreen
+                                   647A 
+           SUB_testModeScreen      649C 
+           SUB_proModeScreen       64F6 
+           SUB_perdioScreen        6558 
+           SUB_ganoScreen          6562 
+           SUB_S2CLRscreen         656C 
+           SUB_timerStateManager   6214 
+           callUpdateRecordScreen
+                                   6230 
+           callUpdateTestModeDigit
+                                   6236 
+           callUpdateProModeDigit
+                                   623C 
+           callS2ScreenLoss        6242 
+           callS2ScreenWin         6248 
+           endTimerManager         624E 
            SUB_updateRecordScreen
-                                   624A 
-           SUB_S1ButtonHandler     6196 
+                                   6436 
+           SUB_updateTestDigit     64E0 
+           SUB_updateProDigit      6542 
+           SUB_s2clrTransitionPerdio
+                                   63AE 
+           SUB_s2clrTransitionGano
+                                   63BE 
+           SUB_S1ButtonHandler     6250 
+           callRecordTransition    6276 
+           callPlayerSelectTransition
+                                   627C 
+           callUpdatePlayerScreen
+                                   6282 
+           callUpdateGameModeScreen
+                                   6288 
+           callSelectTestSegment   628E 
+           callSelectProSegment    6294 
+           callPlayAgain           629A 
+           endS1ButtonHandler      62A0 
            SUB_recordStateTransition
-                                   61B2 
+                                   62EA 
            SUB_playerSelectionStateTransition
-                                   61CE 
+                                   6308 
            SUB_updatePlayerScreen
-                                   627A 
-           SUB_S2ButtonHandler     61A6 
+                                   6466 
+           SUB_updateModeScreen    648A 
+           SUB_selectionTest       64A4 
+           SUB_selectionPro        6502 
+           SUB_titleScreenTransition
+                                   63CE 
+           SUB_S2ButtonHandler     62A2 
+           callPlayerScreenTransition
+                                   62B8 
+           callModeSelectTransition
+                                   62BE 
+           callGameTransition      62C4 
+           callRecordCLR           62E2 
+           endS2ButtonHandler      62E8 
            SUB_playerScreenStateTransition
-                                   61C2 
+                                   62FC 
            SUB_modeSelectionTransition
-                                   61D8 
-           SUB_enableTimer         62D0 
-           SUB_disableTimer        62C4 
+                                   6312 
+           SUB_testOrProModeTransition
+                                   6322 
+           callTestModeTransition
+                                   62D6 
+           callProModeTransition   62DC 
+           SUB_testModeTransition
+                                   6334 
+           SUB_proModeTransition   633E 
+           SUB_clrRecords          6576 
+           SUB_enableTimer         65DE 
+           SUB_perdioTransitionTest
+                                   6348 
+           SUB_updateTestScore     64D0 
+           SUB_ganoTransitionTest
+                                   6360 
+           SUB_perdioTransitionPro
+                                   637A 
+           SUB_updateProScore      652E 
+           SUB_ganoTransitionPro   6392 
            SUB_displayCharacterArray
-                                   628E 
-           drawRecord              6210 
-           drawTopScorer           621A 
-           drawTopProScore         6224 
-           drawTest                622A 
-           drawTestScore           6234 
-           endRecordScreen         6248 
-           drawScore               623A 
-           resetR4Index            6252 
-           updateScreen            6256 
-           resetPlayerIterator     6284 
-           updateSelection         6288 
-           displayCharacterData    6298 
-           endDrawing              62BC 
-           delay                   62D8 
-           loop                    62DE 
-           TIMER_ISR_END           62F4 
-           S1Success               630A 
-           S2Success               631A 
-           PORT1_ISR_END           632A 
+                                   6586 
+           drawRecord              63FC 
+           drawTopScorer           6406 
+           drawTopProScore         6410 
+           drawTest                6416 
+           drawTestScore           6420 
+           endRecordScreen         6434 
+           drawScore               6426 
+           resetR4Index            643E 
+           updateScreen            6442 
+           resetPlayerIterator     6470 
+           updateSelection         6474 
+           resetModeIterator       6492 
+           updateModeSelection     6496 
+           SUB_displaySegmentData
+                                   65BC 
+           storeFirstDigit         64BA 
+           perdioTestMode          64C2 
+           ganoTestMode            64C8 
+           endTestSelection        64CE 
+           newRecordTest           64D8 
+           endTestScoreUpdate      64DE 
+           perdioTestDigitOverflow
+                                   64EA 
+           updateTestSegment       64F0 
+           storeFirstDigitPro      6518 
+           perdioProMode           6520 
+           ganoProMode             6526 
+           endProModeSelection     652C 
+           newRecordPro            6536 
+           endProScoreUpdate       6540 
+           perdioProDigitOverflow
+                                   654C 
+           updateProSegment        6552 
+           displayCharacterData    6590 
+           endDrawing              65B4 
+           SUB_delay               65E6 
+           loop                    65EC 
+           TIMER_ISR_END           6602 
+           S1Success               6618 
+           S2Success               6628 
+           PORT1_ISR_END           6638 
 
 
 
@@ -228,7 +333,7 @@ CSTACK
 SEGMENT              SPACE    START ADDRESS   END ADDRESS     SIZE  TYPE  ALIGN
 =======              =====    =============   ===========     ====  ====  =====
 CSTACK                                 2360 - 23FF              A0   rel    1
-<CODE> 1                               4400 - 632F            1F30   rel    1
+<CODE> 1                               4400 - 663D            223E   rel    1
                                        FFDA - FFDB               2  aseg  
                                        FFE8 - FFE9               2  aseg  
                                        FFFE - FFFF               2  aseg  
@@ -239,7 +344,7 @@ CSTACK                                 2360 - 23FF              A0   rel    1
                 *                                      *
                 ****************************************
 
- 7 984 bytes of CODE memory (+ 6 absolute )
+ 8 766 bytes of CODE memory (+ 6 absolute )
    160 bytes of DATA memory
 
 Errors: none

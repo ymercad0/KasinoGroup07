@@ -2,7 +2,7 @@
 ; - Luis Gonzalez: 802-17-3707/11000041993
 ; - Anthony Mendez: 802-17-6744/11000041407
 ; - Yariel Mercado: 841-19-1434/19000012905
-; - Nicole Roman: 802-19-4674/110000047523
+; - Nicole Roman: 802-19-4674/11000047523
 
 #include "msp430.h"                     ; #define controlled include file
 
